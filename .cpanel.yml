@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/public_html/
+    - /bin/rsync -rav --del --exclude=".git" --exclude=".env" --exclude="node_modules" . $DEPLOYPATH
