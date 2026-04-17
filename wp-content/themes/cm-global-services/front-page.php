@@ -95,25 +95,25 @@
 <section id="sobre" class="py-32 bg-slate-dark border-t border-border-color px-10">
     <div class="container mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
         <div class="space-y-8">
-            <h4 class="text-emerald-green font-mono text-xs font-bold uppercase tracking-[0.2em]">Quality Assurance</h4>
-            <h2 class="text-white text-4xl md:text-5xl font-display leading-[0.9] tracking-tight">Onde Segurança e Tecnologia se Fundem.</h2>
-            <div class="space-y-6 text-slate-400 text-lg leading-relaxed">
+            <span class="text-electric-blue font-mono text-xs font-bold uppercase tracking-[0.3em]">Quality Assurance / SST</span>
+            <h2 class="text-white text-4xl md:text-5xl font-bold leading-[1.1] tracking-tighter">Onde Segurança e Tecnologia se Fundem.</h2>
+            <div class="space-y-6 text-text-secondary text-lg leading-relaxed">
                 <p>A C&M Global Services nasceu da necessidade crítica do mercado industrial por parceiros que compreendam tanto a complexidade da <strong>Segurança e Saúde no Trabalho (SST)</strong> quanto a urgência da modernização digital.</p>
                 <p>Nossa abordagem é <strong>360 graus</strong>: tratamos a infraestrutura física como o alicerce onde a produtividade digital é construída, sempre com foco em continuidade operacional e risco zero.</p>
             </div>
             
             <div class="grid grid-cols-2 gap-4 pt-8">
-                <div class="p-6 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center gap-4 group hover:border-electric-blue transition-colors duration-500">
-                    <div class="w-10 h-10 bg-electric-blue/10 rounded-lg flex items-center justify-center text-electric-blue group-hover:bg-electric-blue group-hover:text-white transition-all">
+                <div class="p-6 bg-slate-surface border border-border-color rounded-sm flex items-center gap-4 group hover:border-electric-blue transition-colors duration-500">
+                    <div class="w-10 h-10 bg-electric-blue/10 rounded-sm flex items-center justify-center text-electric-blue group-hover:bg-electric-blue group-hover:text-slate-dark transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     </div>
-                    <span class="text-white font-display font-bold text-sm tracking-tight leading-none uppercase">SST <br/> Expert Center</span>
+                    <span class="text-text-primary font-bold text-sm tracking-tight leading-none uppercase">SST <br/> Expert Center</span>
                 </div>
-                <div class="p-6 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center gap-4 group hover:border-emerald-green transition-colors duration-500">
-                    <div class="w-10 h-10 bg-emerald-green/10 rounded-lg flex items-center justify-center text-emerald-green group-hover:bg-emerald-green group-hover:text-white transition-all">
+                <div class="p-6 bg-slate-surface border border-border-color rounded-sm flex items-center gap-4 group hover:border-electric-blue transition-colors duration-500">
+                    <div class="w-10 h-10 bg-electric-blue/10 rounded-sm flex items-center justify-center text-electric-blue group-hover:bg-electric-blue group-hover:text-slate-dark transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
                     </div>
-                    <span class="text-white font-display font-bold text-sm tracking-tight leading-none uppercase">Physical-Digital <br/> Integration</span>
+                    <span class="text-text-primary font-bold text-sm tracking-tight leading-none uppercase">Physical-Digital <br/> Integration</span>
                 </div>
             </div>
         </div>
@@ -130,27 +130,27 @@
 </section>
 
 <!-- SEÇÃO CONTATO: Call to Action -->
-<section id="contato" class="py-24 bg-white">
+<section id="contato" class="py-24 bg-slate-dark px-10 border-t border-border-color">
     <div class="container mx-auto px-6">
-        <div class="bg-slate-dark p-12 md:p-24 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-            <div class="absolute -top-24 -right-24 w-96 h-96 bg-electric-blue/20 blur-[120px] rounded-full group-hover:bg-emerald-green/10 transition-colors"></div>
+        <div class="bg-slate-surface border border-border-color p-12 md:p-24 rounded-sm shadow-2xl relative overflow-hidden group">
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-electric-blue/5 blur-[120px] rounded-full transition-colors group-hover:bg-electric-blue/10"></div>
             
             <div class="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
                 <div class="space-y-6">
-                    <h2 class="text-white text-5xl font-display leading-tight">Pronto para <br/> a Evolução?</h2>
-                    <p class="text-slate-400 text-lg">Inicie sua jornada de eficiência energética e segurança normativa com quem entende do chão de fábrica ao servidor central.</p>
+                    <h2 class="text-text-primary text-5xl font-bold tracking-tighter leading-tight">Pronto para <br/> a Evolução?</h2>
+                    <p class="text-text-secondary text-lg max-w-md leading-relaxed">Inicie sua jornada de eficiência energética e segurança normativa com quem entende do chão de fábrica ao servidor central.</p>
                     <div class="space-y-2 pt-4">
-                        <p class="text-white font-display font-bold text-xl uppercase tracking-tighter">comercial@cmglobalservices.com.br</p>
+                        <p class="text-text-primary font-bold text-xl uppercase tracking-tighter">comercial@cmglobalservices.com.br</p>
                         <p class="text-electric-blue font-mono font-bold text-xs uppercase tracking-widest">Av. das Nações, 1200 - São Paulo, SP</p>
                     </div>
                 </div>
                 
                 <div class="flex flex-col gap-4">
-                    <a href="mailto:comercial@cmglobalservices.com.br" class="w-full py-6 bg-electric-blue text-white rounded-2xl font-bold flex items-center justify-center gap-4 text-xl shadow-xl shadow-blue-500/20 hover:scale-[1.02] transform transition-all group/btn">
+                    <a href="mailto:comercial@cmglobalservices.com.br" class="btn-primary w-full py-6 flex items-center justify-center gap-4 text-xl group/btn">
                         FALE COM UM ESPECIALISTA
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transform transition-transform group-hover/btn:translate-x-2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </a>
-                    <p class="text-center text-slate-500 text-xs font-mono font-bold uppercase tracking-widest">Tempo de resposta médio: <span class="text-emerald-green">45 min</span></p>
+                    <p class="text-center text-text-secondary text-[11px] font-mono font-bold uppercase tracking-widest">Tempo de resposta médio: <span class="text-electric-blue">45 min</span></p>
                 </div>
             </div>
         </div>

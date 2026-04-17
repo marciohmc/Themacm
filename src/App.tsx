@@ -162,20 +162,63 @@ export default function App() {
           </div>
         </section>
 
-        {/* ADDITIONAL CONTENT SLOW FADE */}
-        <section className="py-24 px-10 bg-slate-dark">
-          <div className="container mx-auto grid lg:grid-cols-3 gap-8">
-            {services.slice(4).map((service, i) => (
-               <div key={i} className="service-card">
-                  <span className="font-mono text-electric-blue text-[10px] mb-2 block tracking-widest uppercase">{service.shortLabel}</span>
-                  <h3 className="text-text-primary text-base font-bold mb-2">{service.title}</h3>
-                  <p className="text-text-secondary text-xs leading-relaxed">{service.desc}</p>
-               </div>
-            ))}
-            <div className="service-card flex flex-col justify-center items-center text-center group cursor-pointer border-dashed">
-                <ArrowRight className="w-8 h-8 text-electric-blue mb-2 transition-transform group-hover:translate-x-2" />
-                <span className="font-bold text-sm">Ver Todos os Serviços</span>
+        {/* SOBRE SECTION (NEW) */}
+        <section id="sobre" className="py-24 px-10 border-t border-border">
+          <div className="container mx-auto grid lg:grid-cols-2 gap-20 items-center">
+            <div className="space-y-8">
+              <span className="font-mono text-electric-blue text-xs uppercase tracking-[0.3em] font-bold">About / SST</span>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight">
+                Segurança Operacional e <br/>
+                <span className="text-electric-blue">Excelência Técnica</span>.
+              </h2>
+              <div className="space-y-6 text-text-secondary text-lg leading-relaxed">
+                <p>A C&M Global Services integra as normas críticas de <strong>Segurança e Saúde no Trabalho (SST)</strong> diretamente na espinha dorsal da sua infraestrutura física e digital.</p>
+                <p>Nossa engenharia não apenas resolve problemas técnicos, ela garante a continuidade dos negócios através de conformidade rigorosa e inovação constante.</p>
+              </div>
+              <div className="flex gap-10 pt-4">
+                <div className="flex flex-col">
+                  <span className="text-text-primary font-bold text-lg leading-none">NR-10 / NR-23</span>
+                  <span className="text-[11px] uppercase tracking-widest text-text-secondary mt-2">Normas Regulamentadoras</span>
+                </div>
+                <div className="flex flex-col border-l border-border pl-10">
+                  <span className="text-text-primary font-bold text-lg leading-none">360º Vision</span>
+                  <span className="text-[11px] uppercase tracking-widest text-text-secondary mt-2">Consultoria Integrada</span>
+                </div>
+              </div>
             </div>
+            <div className="relative group">
+               <div className="aspect-[4/3] bg-slate-surface border border-border rounded-sm overflow-hidden p-2">
+                 <img 
+                    src="https://picsum.photos/seed/industrial-eng/800/600" 
+                    alt="Engineers" 
+                    className="w-full h-full object-cover grayscale opacity-50 group-hover:opacity-80 transition-opacity"
+                    referrerPolicy="no-referrer"
+                 />
+               </div>
+               <div className="absolute -bottom-6 -left-6 bg-electric-blue text-slate-dark p-6 font-bold tracking-tighter text-2xl">
+                  RISK ZERO <br/> POLICY
+               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SERVICES EXPANSION / CONTACT CTA */}
+        <section id="contato" className="py-24 px-10 border-t border-border bg-slate-surface">
+          <div className="container mx-auto">
+             <div className="max-w-4xl mx-auto text-center space-y-10">
+                <h2 className="text-5xl md:text-6xl font-bold tracking-tighter">
+                  Pronto para a <br/> <span className="text-electric-blue">Evolução Instrumental?</span>
+                </h2>
+                <p className="text-text-secondary text-xl max-w-2xl mx-auto">
+                  Do chão de fábrica à nuvem, nossa equipe está pronta para elevar os padrões da sua operação.
+                </p>
+                <div className="flex flex-col items-center gap-6">
+                  <button className="btn-primary flex items-center gap-3 text-xl px-12 py-5">
+                    Fale com um Especialista <ArrowRight className="w-6 h-6" />
+                  </button>
+                  <span className="text-xs font-mono text-text-secondary uppercase tracking-[0.2em]">Response Time: &lt; 45 Minutes</span>
+                </div>
+             </div>
           </div>
         </section>
       </main>
