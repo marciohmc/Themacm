@@ -1,0 +1,22 @@
+/*
+Theme Name: Thema CM Global
+Theme URI: https://cmglobalservices.com.br/
+Author: AI Developer - CMSpecialist
+Description: Tema industrial customizado para C&M Global Services. Estética Sophisticated Dark.
+Version: 1.1.0
+*/
+
+:root {
+  --slate-dark: #0a0e14;
+  --slate-surface: #141b24;
+  --electric-blue: #00a3ff;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border: #1e293b;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--slate-dark);
+  color: var(--text-primary);
+}
