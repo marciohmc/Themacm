@@ -49,12 +49,24 @@ function cm_global_v2_enqueue_scripts() {
         </script>
         <style type="text/tailwindcss">
             @layer base {
-                body { @apply font-sans antialiased text-text-primary bg-[#0a0e14]; }
+                html, body { 
+                    @apply bg-[#0a0e14] text-[#f8fafc] font-sans antialiased;
+                    background-color: #0a0e14 !important;
+                    color: #f8fafc !important;
+                }
             }
             @layer components {
                 .btn-primary { @apply px-7 py-3.5 bg-[#00a3ff] text-[#0a0e14] rounded-sm font-bold transition-all hover:brightness-110 active:scale-95; }
                 .btn-secondary { @apply px-7 py-3.5 border border-[#1e293b] text-[#f8fafc] rounded-sm font-bold transition-all hover:bg-white/5 active:scale-95; }
                 .service-card { @apply bg-[#141b24] border border-[#1e293b] rounded-sm p-6 transition-all hover:border-[#00a3ff]/50; }
+                
+                /* Fallbacks de cor diretos */
+                .text-text-primary { color: #f8fafc !important; }
+                .text-text-secondary { color: #94a3b8 !important; }
+                .text-electric-blue { color: #00a3ff !important; }
+                .bg-slate-dark { background-color: #0a0e14 !important; }
+                .bg-slate-surface { background-color: #141b24 !important; }
+                .border-border-color { border-color: #1e293b !important; }
             }
         </style>
         <?php

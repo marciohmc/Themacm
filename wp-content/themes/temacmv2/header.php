@@ -4,6 +4,21 @@
     <meta charset="<?php bloginfo( 'charset' ); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php wp_head(); ?>
+    <style>
+        /* Immediate Fix for Theme Colors */
+        :root {
+            --slate-dark: #0a0e14;
+            --electric-blue: #00a3ff;
+            --text-primary: #f8fafc;
+        }
+        body, html {
+            background-color: #0a0e14 !important;
+            color: #f8fafc !important;
+        }
+        .text-text-primary { color: #f8fafc !important; }
+        .text-electric-blue { color: #00a3ff !important; }
+        .bg-slate-dark { background-color: #0a0e14 !important; }
+    </style>
 </head>
 <body <?php body_class( 'h-full flex flex-col bg-[#0a0e14]' ); ?>>
     <header id="site-header" class="fixed top-0 left-0 w-full z-50 h-20 border-b border-border-color flex items-center bg-slate-dark/95 backdrop-blur transition-all duration-300">
