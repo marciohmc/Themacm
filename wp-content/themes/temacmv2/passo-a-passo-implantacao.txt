@@ -1,0 +1,55 @@
+================================================================================
+PASSO A PASSO PARA IMPLANTAÇÃO - TEMA CM GLOBAL SERVICES V2 (SOPHISTICATED DARK)
+================================================================================
+
+Este guia descreve como instalar o tema 'temacmv2' na sua HostGator de forma 
+definitiva e sem erros de cores ou de sistema.
+
+--- PASSO 1: Preparação dos Arquivos ---
+
+1. No seu computador ou GitHub, localize a pasta: `/wp-content/themes/temacmv2/`
+2. Certifique-se de que os seguintes arquivos estão dentro dela (e NÃO o cpanel.yml):
+   - style.css
+   - functions.php
+   - header.php
+   - front-page.php
+   - footer.php
+   - index.php
+
+--- PASSO 2: Envio via Gerenciador de Arquivos (RECOMENDADO) ---
+
+1. Acesse o cPanel da HostGator.
+2. Abra o 'Gerenciador de Arquivos'.
+3. Navegue até a pasta: `public_html/wp-content/themes/`.
+4. Se existir uma pasta chamada 'themacm' ou 'cm-global-services' com erros, você pode apagá-las.
+5. Crie uma NOVA pasta chamada `temacmv2`.
+6. Entre na pasta `temacmv2` e faça o 'Upload' de todos os arquivos listados no Passo 1.
+   *Importante:* Não coloque o arquivo .cpanel.yml dentro desta pasta.
+
+--- PASSO 3: Configuração do cPanel (Se usar Deploy Automático) ---
+
+1. Se você usa o 'Git Version Control' do cPanel:
+2. Garanta que o arquivo `.cpanel.yml` esteja na RAIZ da sua conta (não dentro da pasta do tema).
+3. O conteúdo do `.cpanel.yml` deve apontar o DEPLOYPATH para `/public_html/`.
+
+--- PASSO 4: Ativação no WordPress ---
+
+1. Acesse o painel do seu site: `seusite.com.br/wp-admin`
+2. Vá em 'Aparência' -> 'Temas'.
+3. Você verá o tema 'Thema CM Global v2'.
+4. Clique em 'Ativar'.
+
+--- PASSO 5: Limpeza de Cache e Verificação ---
+
+1. Se você usa o plugin 'LiteSpeed Cache' (comum na HostGator):
+   - Clique no ícone do LiteSpeed no topo do painel e selecione 'Purge All'.
+2. Pressione `CTRL + F5` no seu navegador ao abrir o site para forçar o carregamento das novas cores.
+
+--- NOTAS TÉCNICAS (V2) ---
+
+- As cores (#0a0e14 e #00a3ff) foram inseridas diretamente no código para evitar falhas de carregamento.
+- A fonte 'JetBrains Mono' está sendo carregada via Google Fonts no functions.php.
+- O tema utiliza o Tailwind CSS Play CDN para garantir que o design responsivo funcione sem necessidade de compilação complexa no servidor.
+
+Suporte: AI Designer / Marcio
+Data: 18/04/2026
