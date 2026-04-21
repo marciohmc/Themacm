@@ -8,6 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Configurações Básicas do Tema
 function cm_global_v2_setup() {
     add_theme_support( 'post-thumbnails' );
     add_theme_support( 'title-tag' );
@@ -18,11 +19,9 @@ function cm_global_v2_setup() {
 }
 add_action( 'after_setup_theme', 'cm_global_v2_setup' );
 
+// Enqueue Scripts e Tailwind
 function cm_global_v2_enqueue_scripts() {
-    // Fontes Industriais: Inter e JetBrains Mono
     wp_enqueue_style( 'cm-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap', array(), null );
-
-    // Tailwind CSS via CDN
     wp_enqueue_script( 'tailwind-cdn', 'https://cdn.tailwindcss.com', array(), null, false );
 
     add_action( 'wp_head', function() {
@@ -59,8 +58,6 @@ function cm_global_v2_enqueue_scripts() {
                 .btn-primary { @apply px-7 py-3.5 bg-[#00a3ff] text-[#0a0e14] rounded-sm font-bold transition-all hover:brightness-110 active:scale-95; }
                 .btn-secondary { @apply px-7 py-3.5 border border-[#1e293b] text-[#f8fafc] rounded-sm font-bold transition-all hover:bg-white/5 active:scale-95; }
                 .service-card { @apply bg-[#141b24] border border-[#1e293b] rounded-sm p-6 transition-all hover:border-[#00a3ff]/50; }
-                
-                /* Fallbacks de cor diretos */
                 .text-text-primary { color: #f8fafc !important; }
                 .text-text-secondary { color: #94a3b8 !important; }
                 .text-electric-blue { color: #00a3ff !important; }
@@ -74,31 +71,18 @@ function cm_global_v2_enqueue_scripts() {
 }
 add_action( 'wp_enqueue_scripts', 'cm_global_v2_enqueue_scripts' );
 
+// --- LÓGICA DE API E PUBLICAÇÃO AI ---
 
-// Rota de Publicação Rápida via AI Studio
+// Rota de REST API
 add_action( 'rest_api_init', function () {
     register_rest_route( 'cm-global/v1', '/update-layout', array(
         'methods' => 'POST',
         'callback' => 'cm_handle_layout_update',
-        'permission_callback' => '__return_true', // Recomendo proteger isso com um Token depois
+        'permission_callback' => '__return_true',
     ) );
 } );
 
-
-// Interface de Comando AI no Admin
-add_action('admin_menu', function() {
-    add_menu_page(
-        'AI Studio Publish',
-        'AI Publish',
-        'manage_options',
-        'ai-publish-studio',
-        'cm_ai_publish_page',
-        'dashicons-superhero',
-        2
-    );
-});
-
-
+// Callback para atualizar a home
 function cm_handle_layout_update( $request ) {
     $params = $request->get_json_params();
     $content = $params['content'];
@@ -107,10 +91,61 @@ function cm_handle_layout_update( $request ) {
         wp_update_post( array('ID' => $home_id, 'post_content' => $content) );
         return new WP_REST_Response( array( 'status' => 'success', 'message' => 'Layout atualizado!' ), 200 );
     }
-    return new WP_Error( 'no_home', 'Erro', array( 'status' => 404 ) );
+    return new WP_Error( 'no_home', 'Pagina Inicial não definida', array( 'status' => 404 ) );
 }
 
-// Forçar criação do Endpoint do WPGetAPI
+// Adicionar Menu Admin
+add_action('admin_menu', function() {
+    add_menu_page(
+        'AI Studio Publish',
+        'AI Publish',
+        'manage_options',
+        'ai-publish-studio',
+        'cm_ai_publish_page',
+        'dashicons-performance',
+        2
+    );
+});
+
+// Interface da Página de Publicação
+function cm_ai_publish_page() {
+    ?>
+    <div class="wrap">
+        <h1>🚀 AI Studio: Publicação Rápida</h1>
+        <p>Gere o layout no Gemini e cole abaixo para atualizar sua Home Page instantaneamente.</p>
+        
+        <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px;">
+            <h3>Conteúdo HTML (Tailwind)</h3>
+            <textarea id="ai-content-input" style="width: 100%; height: 400px; font-family: monospace;" placeholder="Cole o código <section> aqui..."></textarea>
+            <br><br>
+            <button id="publish-ai-btn" class="button button-primary button-large">Atualizar Home Page Agora</button>
+            <span id="ai-status" style="margin-left: 15px; font-weight: bold;"></span>
+        </div>
+
+        <script>
+        document.getElementById('publish-ai-btn').addEventListener('click', async () => {
+            const content = document.getElementById('ai-content-input').value;
+            const status = document.getElementById('ai-status');
+            if(!content) { alert('Cole o conteúdo!'); return; }
+            status.innerText = '⏳ Processando...';
+            try {
+                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/update-layout'); ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: content })
+                });
+                const result = await response.json();
+                status.innerText = '✅ ' + (result.message || 'Sucesso!');
+            } catch (e) {
+                status.innerText = '❌ Erro na conexão.';
+            }
+        });
+        </script>
+    </div>
+    <?php
+}
+
+// Forçar Endpoint do WPGetAPI
 add_action('admin_init', function() {
     $opt = 'wpgetapi_endpoints';
     $endpoints = get_option($opt, array());
@@ -127,50 +162,3 @@ add_action('admin_init', function() {
         update_option($opt, $endpoints);
     }
 });
-    ?>
-    <div class="wrap">
-        <h1>🚀 AI Studio: Publicação Rápida</h1>
-        <p>Use esta interface para integrar o Gemini e atualizar seu layout instantaneamente.</p>
-        
-        <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px;">
-            <h3>Passo 1: Gere o Layout no Gemini</h3>
-            <p>Copie e cole este prompt no seu Gemini (ou use o WPGetAPI configurado):</p>
-            <code>"Gere um layout HTML usando classes do Tailwind CSS para a home page da C&M Global Services. Foque em estética Sophisticated Dark. Retorne apenas o código dentro de tags section."</code>
-            
-            <hr>
-            
-            <h3>Passo 2: Publicar Conteúdo</h3>
-            <textarea id="ai-content-input" style="width: 100%; height: 200px; font-family: monospace;" placeholder="Cole o código HTML/Tailwind gerado aqui..."></textarea>
-            <br><br>
-            <button id="publish-ai-btn" class="button button-primary button-large">Publicar Agora no Site</button>
-            <span id="ai-status" style="margin-left: 15px; font-weight: bold;"></span>
-        </div>
-
-        <script>
-        document.getElementById('publish-ai-btn').addEventListener('click', async () => {
-            const content = document.getElementById('ai-content-input').value;
-            const status = document.getElementById('ai-status');
-            
-            if(!content) {
-                alert('Cole o conteúdo primeiro!');
-                return;
-            }
-
-            status.innerText = '⏳ Publicando...';
-            
-            try {
-                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/update-layout'); ?>', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: content })
-                });
-                const result = await response.json();
-                status.innerText = '✅ ' + result.message;
-            } catch (e) {
-                status.innerText = '❌ Erro ao publicar.';
-            }
-        });
-        </script>
-    </div>
-    <?php
-}
