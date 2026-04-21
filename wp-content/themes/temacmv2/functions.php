@@ -21,7 +21,8 @@ add_action( 'after_setup_theme', 'cm_global_v2_setup' );
 
 // Enqueue Scripts e Tailwind
 function cm_global_v2_enqueue_scripts() {
-    wp_enqueue_style( 'cm-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap', array(), null );
+    // Fontes Modernas: Space Grotesk e Inter
+    wp_enqueue_style( 'cm-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap', array(), null );
     wp_enqueue_script( 'tailwind-cdn', 'https://cdn.tailwindcss.com', array(), null, false );
 
     add_action( 'wp_head', function() {
@@ -31,16 +32,15 @@ function cm_global_v2_enqueue_scripts() {
                 theme: {
                     extend: {
                         colors: {
-                            'slate-dark': '#0a0e14',
-                            'slate-surface': '#141b24',
-                            'electric-blue': '#00a3ff',
+                            'slate-dark': '#0f172a',
+                            'electric-blue': '#3b82f6',
                             'text-primary': '#f8fafc',
                             'text-secondary': '#94a3b8',
                             'border-color': '#1e293b',
                         },
                         fontFamily: {
                             'sans': ['Inter', 'sans-serif'],
-                            'mono': ['JetBrains Mono', 'monospace'],
+                            'display': ['Space Grotesk', 'sans-serif'],
                         }
                     }
                 }
@@ -49,21 +49,14 @@ function cm_global_v2_enqueue_scripts() {
         <style type="text/tailwindcss">
             @layer base {
                 html, body { 
-                    @apply bg-[#0a0e14] text-[#f8fafc] font-sans antialiased;
-                    background-color: #0a0e14 !important;
-                    color: #f8fafc !important;
+                    @apply bg-[#0f172a] text-[#f8fafc] font-sans antialiased;
                 }
+                h1, h2, h3, h4 { @apply font-display tracking-tight text-white; }
             }
             @layer components {
-                .btn-primary { @apply px-7 py-3.5 bg-[#00a3ff] text-[#0a0e14] rounded-sm font-bold transition-all hover:brightness-110 active:scale-95; }
-                .btn-secondary { @apply px-7 py-3.5 border border-[#1e293b] text-[#f8fafc] rounded-sm font-bold transition-all hover:bg-white/5 active:scale-95; }
-                .service-card { @apply bg-[#141b24] border border-[#1e293b] rounded-sm p-6 transition-all hover:border-[#00a3ff]/50; }
-                .text-text-primary { color: #f8fafc !important; }
-                .text-text-secondary { color: #94a3b8 !important; }
-                .text-electric-blue { color: #00a3ff !important; }
-                .bg-slate-dark { background-color: #0a0e14 !important; }
-                .bg-slate-surface { background-color: #141b24 !important; }
-                .border-border-color { border-color: #1e293b !important; }
+                .btn-primary { @apply px-8 py-4 bg-[#3b82f6] text-white rounded-md font-bold transition-all hover:bg-[#2563eb] shadow-lg shadow-blue-500/20 active:scale-95; }
+                .btn-secondary { @apply px-8 py-4 border border-[#1e293b] text-white rounded-md font-bold transition-all hover:bg-white/5 active:scale-95; }
+                .card-glass { @apply bg-[#1e293b]/50 backdrop-blur-sm border border-white/5 rounded-xl p-8 transition-all hover:border-[#3b82f6]/40 hover:shadow-xl hover:shadow-blue-500/5; }
             }
         </style>
         <?php

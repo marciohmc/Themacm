@@ -1,20 +1,25 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# C&M Global Services - WordPress Custom Theme
 
-# Run and deploy your AI Studio app
+Tema personalizado desenvolvido para a **C&M Global Services**, focado em engenharia industrial de alta tecnologia e consultoria estratégica.
 
-This contains everything you need to run your app locally.
+## 🚀 Tecnologias Utilizadas
+- **WordPress**: Motor do site.
+- **Tailwind CSS**: Framework de estilização via CDN para máxima performance.
+- **Google Fonts**: Fontes 'Space Grotesk' (Títulos) e 'Inter' (Texto).
+- **Lucide Icons**: Pacote de ícones modernos.
 
-View your app in AI Studio: https://ai.studio/apps/f254a7bd-bfaa-4473-be71-84ad3c775b00
+## 📂 Estrutura do Tema
+- `style.css`: Configurações globais e definições do tema.
+- `functions.php`: Registro de menus, enfileiramento de scripts e fontes.
+- `header.php`: Cabeçalho dinâmico e modernizado.
+- `front-page.php`: Página inicial com seções industriais.
+- `footer.php`: Rodapé profissional e informações de contato.
 
-## Run Locally
+## 🛠️ Instalação
+1. Com o WordPress instalado, navegue até `wp-content/themes`.
+2. Clone este repositório ou cole a pasta `temacmv2`.
+3. Ative o tema no painel administrativo em **Aparência > Temas**.
+4. Configure a Página Inicial em **Configurações > Leitura**.
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+---
+*Desenvolvido por Marcio - AI Software Architect*

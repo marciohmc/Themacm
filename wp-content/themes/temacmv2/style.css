@@ -2,35 +2,30 @@
 Theme Name: Thema CM Global v2
 Theme URI: https://cmglobalservices.com.br/
 Author: Marcio - AI Designer
-Description: Tema industrial customizado para C&M Global Services. Estética Sophisticated Dark v2 (Estável).
-Version: 2.0.0
+Description: Tema industrial Tech-Moderno para C&M Global Services. Estética Slate & Electric Blue.
+Version: 2.1.0
 Text Domain: temacmv2
 */
 
-/* 1. VARIÁVEIS DO TEMA */
 :root {
-  --slate-dark: #0a0e14;
-  --slate-surface: #141b24;
-  --electric-blue: #00a3ff;
+  --slate-bg: #0f172a;
+  --electric-blue: #3b82f6;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --border-color: #1e293b;
 }
 
-/* 2. DEFINIÇÕES GLOBAIS DE COR (DIRETO NO TEMPLATE) */
-
-/* Força o fundo escuro e cor de texto clara em todo o site */
 html, body {
-  background-color: #0a0e14 !important;
+  background-color: #0f172a !important;
   color: #f8fafc !important;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Força a cor branca em todos os títulos */
 h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', sans-serif;
   color: #f8fafc !important;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 /* Define a cor dos parágrafos e textos secundários */

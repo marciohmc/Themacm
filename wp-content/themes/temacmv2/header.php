@@ -5,37 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php wp_head(); ?>
     <style>
-        /* Immediate Fix for Theme Colors */
         :root {
-            --slate-dark: #0a0e14;
-            --electric-blue: #00a3ff;
-            --text-primary: #f8fafc;
+            --slate-dark: #0f172a;
+            --electric-blue: #3b82f6;
         }
-        body, html {
-            background-color: #0a0e14 !important;
-            color: #f8fafc !important;
-        }
-        .text-text-primary { color: #f8fafc !important; }
-        .text-electric-blue { color: #00a3ff !important; }
-        .bg-slate-dark { background-color: #0a0e14 !important; }
+        body { background-color: #0f172a !important; }
     </style>
 </head>
-<body <?php body_class( 'h-full flex flex-col bg-[#0a0e14]' ); ?>>
-    <header id="site-header" class="fixed top-0 left-0 w-full z-50 h-20 border-b border-border-color flex items-center bg-slate-dark/95 backdrop-blur transition-all duration-300">
-        <div class="container mx-auto px-10 flex items-center justify-between">
-            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-3 group">
-                <div class="w-8 h-8 bg-electric-blue flex items-center justify-center rounded-sm text-slate-dark font-bold text-lg">
+<body <?php body_class( 'bg-[#0f172a]' ); ?>>
+    <header id="site-header" class="fixed top-0 left-0 w-full z-50 h-24 flex items-center bg-[#0f172a]/80 backdrop-blur-md border-b border-white/5 transition-all duration-300">
+        <div class="container mx-auto px-6 md:px-12 flex items-center justify-between">
+            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
                     CM
                 </div>
-                <span class="text-text-primary font-bold text-xl tracking-tighter uppercase whitespace-nowrap">C&M GLOBAL SERVICES</span>
+                <div class="flex flex-col">
+                    <span class="text-white font-display font-bold text-lg leading-tight tracking-tight uppercase">C&M Global</span>
+                    <span class="text-[#3b82f6] font-mono text-[10px] tracking-[0.2em] font-bold uppercase">Services</span>
+                </div>
             </a>
 
-            <nav class="hidden md:flex items-center gap-8">
-                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="text-electric-blue font-medium text-sm uppercase tracking-widest">Início</a>
-                <a href="#servicos" class="text-text-secondary hover:text-text-primary font-medium text-sm uppercase tracking-widest transition-colors">Serviços</a>
-                <a href="#sst" class="text-text-secondary hover:text-text-primary font-medium text-sm uppercase tracking-widest transition-colors">SST</a>
-                <a href="#sobre" class="text-text-secondary hover:text-text-primary font-medium text-sm uppercase tracking-widest transition-colors">Sobre</a>
-                <a href="#contato" class="text-text-secondary hover:text-text-primary font-medium text-sm uppercase tracking-widest transition-colors">Contato</a>
+            <nav class="hidden md:flex items-center gap-10">
+                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="text-[#3b82f6] font-display font-medium text-sm tracking-wide">Início</a>
+                <a href="#servicos" class="text-slate-400 hover:text-white font-display font-medium text-sm tracking-wide transition-colors">Serviços</a>
+                <a href="#diferenciais" class="text-slate-400 hover:text-white font-display font-medium text-sm tracking-wide transition-colors">Diferenciais</a>
+                <a href="#sobre" class="text-slate-400 hover:text-white font-display font-medium text-sm tracking-wide transition-colors">Sobre Nós</a>
+                <a href="#contato" class="px-5 py-2 bg-white/5 border border-white/10 text-white rounded-full font-display font-medium text-sm hover:bg-white/10 transition-all">Contato</a>
             </nav>
 
             <div class="md:hidden">
