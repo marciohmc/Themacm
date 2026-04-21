@@ -1,4 +1,4 @@
 deployment:
   tasks:
-    - export DEPLOYPATH=/public_html/
-    - /bin/rsync -rav --del --exclude=".git" --exclude=".env" --exclude="node_modules" . $DEPLOYPATH
+    - export DEPLOYPATH=/public_html/wp-content/themes/temacmv2/
+    - /bin/rsync -rav --del --exclude=".git" --exclude=".env" --exclude="node_modules" wp-content/themes/temacmv2/ $DEPLOYPATH
