@@ -190,8 +190,18 @@ function cm_ai_publish_page() {
                     <input type="text" id="ai-post-title" style="width: 100%; height: 35px;" placeholder="Título dinâmico">
                 </div>
 
-                <label style="display: block; font-weight: bold; margin-bottom: 8px;">3. Código HTML / Tailwind</label>
-                <textarea id="ai-content-input" style="width: 100%; height: 300px; font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #fafafa; border-radius: 4px;" placeholder="Cole aqui..."></textarea>
+                <div style="display: flex; gap: 10px; margin-bottom: 8px; align-items: center;">
+                    <label style="font-weight: bold;">3. Código HTML / Tailwind</label>
+                    <button id="toggle-live-code" type="button" class="button" style="font-size: 10px; height: 22px; line-height: 20px;">Ver Código em Produção</button>
+                </div>
+                
+                <div id="live-code-wrapper" style="display: none; margin-bottom: 20px;">
+                    <span style="font-size: 10px; color: #ef4444; font-weight: bold; display: block; margin-bottom: 5px;">🔴 CÓDIGO ATUAL EM PRODUÇÃO (SOMENTE LEITURA)</span>
+                    <textarea id="ai-live-content-view" style="width: 100%; height: 200px; font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 4px; color: #7f1d1d;" readonly></textarea>
+                    <button id="copy-to-draft" type="button" class="button" style="margin-top: 5px; width: 100%;">Copiar para o Editor de Rascunho ↑</button>
+                </div>
+
+                <textarea id="ai-content-input" style="width: 100%; height: 350px; font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #fafafa; border-radius: 4px;" placeholder="Cole aqui seu novo código..."></textarea>
                 
                 <div style="margin-top: 20px; display: flex; align-items: center; gap: 15px;">
                     <button id="publish-ai-btn" class="button button-primary button-large" style="padding: 0 40px; height: 45px; font-weight: bold;">Publicar Live</button>
@@ -229,16 +239,36 @@ function cm_ai_publish_page() {
 
         <script>
         const input = document.getElementById('ai-content-input');
+        const liveView = document.getElementById('ai-live-content-view');
         const preview = document.getElementById('preview-frame');
         const production = document.getElementById('production-frame');
         const historySelect = document.getElementById('ai-history-list');
         const restoreBtn = document.getElementById('restore-btn');
+        const toggleLiveBtn = document.getElementById('toggle-live-code');
+        const liveWrapper = document.getElementById('live-code-wrapper');
+        const copyBtn = document.getElementById('copy-to-draft');
         
         // Conteúdo atual em produção
-        const liveContent = <?php 
+        let currentLiveContent = <?php 
             $home_id = get_option('page_on_front');
             echo json_encode($home_id ? get_post($home_id)->post_content : ''); 
         ?>;
+
+        // Inicializa Visualizador de Código Live
+        liveView.value = currentLiveContent;
+
+        toggleLiveBtn.addEventListener('click', () => {
+            const isHidden = liveWrapper.style.display === 'none';
+            liveWrapper.style.display = isHidden ? 'block' : 'none';
+            toggleLiveBtn.innerText = isHidden ? 'Ocultar Código Produção' : 'Ver Código em Produção';
+        });
+
+        copyBtn.addEventListener('click', () => {
+            if(confirm('Isso substituirá o código no editor de rascunho. Continuar?')) {
+                input.value = currentLiveContent;
+                updateDraftPreview();
+            }
+        });
 
         // Função Genérica para renderizar HTML em Iframe com Tailwind
         function renderInFrame(iframe, content) {
@@ -279,7 +309,7 @@ function cm_ai_publish_page() {
 
         // Inicializa Previsão de Produção
         function initProductionPreview() {
-            renderInFrame(production, liveContent);
+            renderInFrame(production, currentLiveContent);
         }
 
         input.addEventListener('input', updateDraftPreview);
@@ -333,12 +363,15 @@ function cm_ai_publish_page() {
             });
             const result = await response.json();
             status.innerText = '✅ ' + result.message;
-            loadHistory();
             
-            // Opcional: Atualizar produção após publicar (recarregar página ou iframe)
-            if(type === 'home') {
-                renderInFrame(production, input.value);
+            // Sincroniza estado Live no Painel
+            if(type === 'home' && response.ok) {
+                currentLiveContent = input.value;
+                liveView.value = currentLiveContent;
+                renderInFrame(production, currentLiveContent);
             }
+            
+            loadHistory();
         });
 
         document.getElementById('ai-target-type').addEventListener('change', (e) => {
