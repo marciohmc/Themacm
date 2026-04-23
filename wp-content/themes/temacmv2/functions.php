@@ -130,7 +130,66 @@ add_action( 'rest_api_init', function () {
         'callback' => 'cm_handle_save_content',
         'permission_callback' => '__return_true',
     ) );
+    // Rota para Chat com Gemini
+    register_rest_route( 'cm-global/v1', '/gemini-chat', array(
+        'methods' => 'POST',
+        'callback' => 'cm_handle_gemini_chat',
+        'permission_callback' => '__return_true',
+    ) );
 } );
+
+// Callback para Chat Gemini
+function cm_handle_gemini_chat( $request ) {
+    $params = $request->get_json_params();
+    $user_prompt = $params['prompt'];
+    $api_key = getenv('GEMINI_API_KEY');
+
+    if ( !$api_key ) {
+        return new WP_Error( 'no_key', 'GEMINI_API_KEY não configurada no servidor.', array( 'status' => 500 ) );
+    }
+
+    $system_instruction = "Você é um desenvolvedor frontend especialista em Tailwind CSS e WordPress. 
+    Seu objetivo é gerar APENAS o código HTML com classes Tailwind para o tema da empresa C&M Global Services.
+    Diretrizes de Design:
+    - Background principal: slate-dark (#0f172a)
+    - Cor de destaque: electric-blue (#3b82f6)
+    - Fontes: 'Space Grotesk' (display) para títulos e 'Inter' (sans) para textos.
+    - Estilo: Industrial, Tech-Moderno, Profissional, Minimalista.
+    - Componentes de vidro (glassmorphism): use 'card-glass' (bg-[#1e293b]/50 backdrop-blur-sm border border-white/5).
+    - Botões: use 'btn-primary' ou 'btn-secondary'.
+    Retorne APENAS o código HTML limpo, sem explicações, sem blocos de código markdown (```html), apenas o conteúdo que será inserido no body.";
+
+    $body = array(
+        'contents' => array(
+            array(
+                'role' => 'user',
+                'parts' => array(
+                    array('text' => "Instrução de Sistema: " . $system_instruction),
+                    array('text' => "Solicitação do Usuário: " . $user_prompt)
+                )
+            )
+        )
+    );
+
+    $response = wp_remote_post( "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $api_key, array(
+        'headers'     => array( 'Content-Type' => 'application/json' ),
+        'body'        => json_encode( $body ),
+        'timeout'     => 60,
+    ) );
+
+    if ( is_wp_error( $response ) ) {
+        return $response;
+    }
+
+    $data = json_decode( wp_remote_retrieve_body( $response ), true );
+    $ai_text = $data['candidates'][0]['content']['parts'][0]['text'];
+    
+    // Limpar possíveis blocos markdown se o modelo ignorar a instrução
+    $ai_text = str_replace( array('```html', '```'), '', $ai_text );
+    $ai_text = trim($ai_text);
+
+    return array( 'status' => 'success', 'content' => $ai_text );
+}
 
 // Buscar todas as páginas
 function cm_get_all_pages() {
@@ -235,6 +294,20 @@ function cm_ai_publish_page() {
         <h1 style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 30px;">🚀</span> Huxxconect AI Studio: Versão 2.1 Pro
         </h1>
+
+        <!-- CHAT COM GEMINI -->
+        <div style="background: #1e293b; color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <h2 style="color: #3b82f6; margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 18px;">
+                <span style="font-size: 24px;">🤖</span> Huxx Assistente IA (Gemini 1.5 Flash)
+            </h2>
+            <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Descreva o que você deseja criar ou alterar (ex: "Crie uma seção de depoimentos de clientes com 3 cards no estilo dark mode").</p>
+            
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="ai-chat-prompt" style="flex: 1; height: 45px; background: #0f172a; border: 1px solid #334155; color: white; padding: 0 15px; border-radius: 6px;" placeholder="O que vamos construir hoje?">
+                <button id="generate-ai-code-btn" class="button" style="background: #3b82f6; color: white; border: none; height: 45px; padding: 0 25px; border-radius: 6px; font-weight: bold; cursor: pointer;">Gerar Código</button>
+            </div>
+            <div id="ai-chat-status" style="margin-top: 10px; font-size: 12px; color: #3b82f6; min-height: 15px;"></div>
+        </div>
         
         <div style="display: grid; grid-template-cols: 1fr; gap: 20px; margin-top: 20px;">
             
@@ -383,6 +456,40 @@ function cm_ai_publish_page() {
         }
 
         targetSelect.addEventListener('change', handleTargetChange);
+
+        // Lógica de Chat com Gemini
+        document.getElementById('generate-ai-code-btn').addEventListener('click', async () => {
+            const prompt = document.getElementById('ai-chat-prompt').value;
+            const chatStatus = document.getElementById('ai-chat-status');
+            const editor = document.getElementById('ai-content-input');
+            
+            if(!prompt) return alert('Por favor, digite o que você deseja gerar.');
+            
+            chatStatus.innerText = '🧠 Huxley está pensando e codificando...';
+            document.getElementById('generate-ai-code-btn').disabled = true;
+
+            try {
+                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/gemini-chat'); ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await response.json();
+                
+                if(data.status === 'success') {
+                    editor.value = data.content;
+                    updateDraftPreview();
+                    chatStatus.innerText = '✨ Código gerado e aplicado ao rascunho!';
+                    document.getElementById('ai-chat-prompt').value = '';
+                } else {
+                    chatStatus.innerText = '❌ Erro: ' + (data.message || 'Falha na IA');
+                }
+            } catch (e) {
+                chatStatus.innerText = '❌ Erro de conexão com a IA.';
+            } finally {
+                document.getElementById('generate-ai-code-btn').disabled = false;
+            }
+        });
 
         // Função Genérica para renderizar HTML em Iframe com Tailwind
         function renderInFrame(iframe, content) {
