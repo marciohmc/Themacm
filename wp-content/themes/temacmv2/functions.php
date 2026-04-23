@@ -72,7 +72,13 @@ class CM_Walker_Nav_Menu extends Walker_Nav_Menu {
         $classes = empty($item->classes) ? array() : (array) $item->classes;
         $active_class = in_array('current-menu-item', $classes) ? 'text-[#3b82f6]' : 'text-slate-400 hover:text-white';
         
-        $output .= '<a href="' . $item->url . '" class="' . $active_class . ' font-display font-medium text-sm tracking-wide transition-colors">';
+        $url = $item->url;
+        // Se for um link de âncora (ex: #contato), garante que funcione em outras páginas voltando para a Home
+        if (strpos($url, '#') === 0) {
+            $url = home_url('/') . $url;
+        }
+
+        $output .= '<a href="' . $url . '" class="' . $active_class . ' font-display font-medium text-sm tracking-wide transition-colors">';
         $output .= $item->title;
         $output .= '</a>';
     }
