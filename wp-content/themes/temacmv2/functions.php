@@ -50,13 +50,23 @@ function cm_global_v2_enqueue_scripts() {
             @layer base {
                 html, body { 
                     @apply bg-[#0f172a] text-[#f8fafc] font-sans antialiased;
+                    background-color: #0f172a;
                 }
-                h1, h2, h3, h4 { @apply font-display tracking-tight text-white; }
+                h1, h2, h3, h4, h5, h6 { 
+                    @apply font-display tracking-tight text-white font-bold; 
+                }
+                p { @apply text-text-secondary leading-relaxed; }
+                a { @apply transition-all duration-300; }
             }
             @layer components {
-                .btn-primary { @apply px-8 py-4 bg-[#3b82f6] text-white rounded-md font-bold transition-all hover:bg-[#2563eb] shadow-lg shadow-blue-500/20 active:scale-95; }
-                .btn-secondary { @apply px-8 py-4 border border-[#1e293b] text-white rounded-md font-bold transition-all hover:bg-white/5 active:scale-95; }
+                .btn-primary { @apply px-8 py-4 bg-[#3b82f6] text-white rounded-md font-bold transition-all hover:bg-[#2563eb] shadow-lg shadow-blue-500/20 active:scale-95 text-center inline-block; }
+                .btn-secondary { @apply px-8 py-4 border border-[#1e293b] text-white rounded-md font-bold transition-all hover:bg-white/5 active:scale-95 text-center inline-block; }
                 .card-glass { @apply bg-[#1e293b]/50 backdrop-blur-sm border border-white/5 rounded-xl p-8 transition-all hover:border-[#3b82f6]/40 hover:shadow-xl hover:shadow-blue-500/5; }
+                .section-glow { @apply relative overflow-hidden; }
+                .section-glow::before {
+                    content: '';
+                    @apply absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full -z-10;
+                }
             }
         </style>
         <?php
