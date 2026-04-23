@@ -16,13 +16,19 @@
     <header id="site-header" class="fixed top-0 left-0 w-full z-50 h-24 flex items-center bg-[#0f172a]/80 backdrop-blur-md border-b border-white/5 transition-all duration-300">
         <div class="container mx-auto px-6 md:px-12 flex items-center justify-between">
             <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
-                    CM
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-white font-display font-bold text-lg leading-tight tracking-tight uppercase">C&M Global</span>
-                    <span class="text-[#3b82f6] font-mono text-[10px] tracking-[0.2em] font-bold uppercase">Services</span>
-                </div>
+                <?php if ( has_custom_logo() ) : ?>
+                    <div class="max-h-12 w-auto">
+                        <?php the_custom_logo(); ?>
+                    </div>
+                <?php else : ?>
+                    <div class="w-10 h-10 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
+                        CM
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-white font-display font-bold text-lg leading-tight tracking-tight uppercase">C&M Global</span>
+                        <span class="text-[#3b82f6] font-mono text-[10px] tracking-[0.2em] font-bold uppercase">Services</span>
+                    </div>
+                <?php endif; ?>
             </a>
 
             <nav class="hidden md:flex items-center gap-10">

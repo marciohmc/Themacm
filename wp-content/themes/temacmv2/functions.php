@@ -16,6 +16,12 @@ function cm_global_v2_setup() {
         'primary' => __( 'Menu Principal', 'temacmv2' ),
         'footer'  => __( 'Menu Rodapé', 'temacmv2' ),
     ) );
+    add_theme_support( 'custom-logo', array(
+        'height'      => 60,
+        'width'       => 200,
+        'flex-height' => true,
+        'flex-width'  => true,
+    ) );
 }
 add_action( 'after_setup_theme', 'cm_global_v2_setup' );
 

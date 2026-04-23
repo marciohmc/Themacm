@@ -4,8 +4,14 @@
         <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-16">
             <div class="space-y-6">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold">CM</div>
-                    <span class="text-white font-display font-bold text-xl uppercase italic">C&M Global</span>
+                    <?php if ( has_custom_logo() ) : ?>
+                         <div class="max-h-8 w-auto">
+                            <?php the_custom_logo(); ?>
+                         </div>
+                    <?php else : ?>
+                        <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold">CM</div>
+                        <span class="text-white font-display font-bold text-xl uppercase italic">C&M Global</span>
+                    <?php endif; ?>
                 </div>
                 <p class="text-slate-400 text-sm leading-relaxed max-w-xs">
                     Engenharia conectada ao amanhã. Soluções industriais inteligentes e conformidade técnica global.
