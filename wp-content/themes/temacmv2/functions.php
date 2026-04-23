@@ -264,17 +264,32 @@ function cm_handle_gemini_chat( $request ) {
     return array( 'status' => 'success', 'content' => $ai_text );
 }
 
-// Buscar todas as páginas
+// Buscar todas as páginas e posts
 function cm_get_all_pages() {
     $pages = get_pages();
-    $result = array();
+    $posts = get_posts( array( 'numberposts' => 50, 'post_status' => 'publish' ) );
+    
+    $result = array(
+        'pages' => array(),
+        'posts' => array()
+    );
+
     foreach ( $pages as $page ) {
-        $result[] = array(
+        $result['pages'][] = array(
             'id'    => $page->ID,
             'title' => $page->post_title,
             'url'   => get_permalink($page->ID)
         );
     }
+
+    foreach ( $posts as $post ) {
+        $result['posts'][] = array(
+            'id'    => $post->ID,
+            'title' => $post->post_title,
+            'url'   => get_permalink($post->ID)
+        );
+    }
+
     return $result;
 }
 
@@ -415,7 +430,10 @@ function cm_ai_publish_page() {
                                 <option value="new_post">Novo Post Blog</option>
                                 <option value="new_page">Nova Página Estática</option>
                             </optgroup>
-                            <optgroup label="Atualizar Existente" id="existing-pages-group">
+                            <optgroup label="Atualizar Página Existente" id="existing-pages-group">
+                                <!-- Preenchido via JS -->
+                            </optgroup>
+                            <optgroup label="Atualizar Post Existente" id="existing-posts-group">
                                 <!-- Preenchido via JS -->
                             </optgroup>
                         </select>
@@ -496,21 +514,31 @@ function cm_ai_publish_page() {
         const copyBtn = document.getElementById('copy-to-draft');
         const targetSelect = document.getElementById('ai-target-type');
         const existingPagesGroup = document.getElementById('existing-pages-group');
+        const existingPostsGroup = document.getElementById('existing-posts-group');
         const titleInput = document.getElementById('ai-post-title');
         
         let currentLiveContent = "";
-        let pagesCache = [];
+        let objectsCache = { pages: [], posts: [] };
 
-        // 1. Carregar lista de páginas existentes
+        // 1. Carregar lista de páginas e posts existentes
         async function loadPagesList() {
             const res = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/get-pages'); ?>');
-            pagesCache = await res.json();
+            objectsCache = await res.json();
+            
             existingPagesGroup.innerHTML = "";
-            pagesCache.forEach(p => {
+            objectsCache.pages.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = "page_" + p.id;
-                opt.innerText = "Página: " + p.title;
+                opt.innerText = p.title;
                 existingPagesGroup.appendChild(opt);
+            });
+
+            existingPostsGroup.innerHTML = "";
+            objectsCache.posts.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = "page_" + p.id; // Mantendo o prefixo page_ para compatibilidade com o parser de ID existente
+                opt.innerText = p.title;
+                existingPostsGroup.appendChild(opt);
             });
             
             // Tentar selecionar a Home por padrão
@@ -528,10 +556,11 @@ function cm_ai_publish_page() {
             
             if(val.startsWith("page_")) {
                 const id = val.split("_")[1];
-                const page = pagesCache.find(p => p.id == id);
-                titleInput.value = page ? page.title : "";
+                // Busca em ambos os caches
+                const obj = objectsCache.pages.find(p => p.id == id) || objectsCache.posts.find(p => p.id == id);
+                titleInput.value = obj ? obj.title : "";
                 
-                status.innerText = "⏳ Carregando dados da página...";
+                status.innerText = "⏳ Carregando dados...";
                 const res = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/get-page-content/'); ?>' + id);
                 const data = await res.json();
                 currentLiveContent = data.content;
