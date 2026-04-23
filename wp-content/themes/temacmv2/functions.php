@@ -136,16 +136,42 @@ add_action( 'rest_api_init', function () {
         'callback' => 'cm_handle_gemini_chat',
         'permission_callback' => '__return_true',
     ) );
+
+    // Rota para salvar Configuração do Gemini
+    register_rest_route( 'cm-global/v1', '/save-gemini-config', array(
+        'methods' => 'POST',
+        'callback' => 'cm_handle_save_gemini_config',
+        'permission_callback' => '__return_true',
+    ) );
 } );
+
+// Salvar configuração do Gemini
+function cm_handle_save_gemini_config( $request ) {
+    $params = $request->get_json_params();
+    $key = $params['api_key'];
+    if ( $key ) {
+        update_option('cm_gemini_api_key', $key);
+        return array( 'status' => 'success', 'message' => 'Chave API salva com sucesso!' );
+    }
+    return new WP_Error( 'invalid', 'Chave vazia.', array( 'status' => 400 ) );
+}
 
 // Callback para Chat Gemini
 function cm_handle_gemini_chat( $request ) {
     $params = $request->get_json_params();
     $user_prompt = $params['prompt'];
+    
+    // Tenta buscar a chave de múltiplos lugares (Ambiente ou Opção do WP)
     $api_key = getenv('GEMINI_API_KEY');
+    if (!$api_key) $api_key = getenv('GOOGLE_API_KEY');
+    if (!$api_key && isset($_ENV['GEMINI_API_KEY'])) $api_key = $_ENV['GEMINI_API_KEY'];
+    if (!$api_key && isset($_SERVER['GEMINI_API_KEY'])) $api_key = $_SERVER['GEMINI_API_KEY'];
+    
+    // Fallback para uma opção salva no WordPress (caso o ambiente falhe)
+    if (!$api_key) $api_key = get_option('cm_gemini_api_key');
 
     if ( !$api_key ) {
-        return new WP_Error( 'no_key', 'GEMINI_API_KEY não configurada no servidor.', array( 'status' => 500 ) );
+        return new WP_Error( 'no_key', 'GEMINI_API_KEY não configurada. Por favor, configure nas variáveis de ambiente do AI Studio ou use o campo de configuração abaixo.', array( 'status' => 500 ) );
     }
 
     $system_instruction = "Você é um desenvolvedor frontend especialista em Tailwind CSS e WordPress. 
@@ -307,6 +333,15 @@ function cm_ai_publish_page() {
                 <button id="generate-ai-code-btn" class="button" style="background: #3b82f6; color: white; border: none; height: 45px; padding: 0 25px; border-radius: 6px; font-weight: bold; cursor: pointer;">Gerar Código</button>
             </div>
             <div id="ai-chat-status" style="margin-top: 10px; font-size: 12px; color: #3b82f6; min-height: 15px;"></div>
+            
+            <!-- CONFIGURAÇÃO DE CHAVE (MINIMIZÁVEL) -->
+            <details style="margin-top: 15px; border-top: 1px solid #334155; pt-15px;">
+                <summary style="font-size: 11px; cursor: pointer; color: #64748b;">⚙️ Configurar Ponte Gemini (caso necessário)</summary>
+                <div style="padding-top: 10px; display: flex; gap: 10px;">
+                    <input type="password" id="gemini-key-input" style="flex: 1; height: 30px; background: #0f172a; border: 1px solid #334155; color: white; font-size: 11px;" placeholder="Insira seu GEMINI_API_KEY">
+                    <button id="save-gemini-key-btn" class="button" style="height: 30px; line-height: 28px; font-size: 11px;">Salvar Chave</button>
+                </div>
+            </details>
         </div>
         
         <div style="display: grid; grid-template-cols: 1fr; gap: 20px; margin-top: 20px;">
@@ -489,6 +524,21 @@ function cm_ai_publish_page() {
             } finally {
                 document.getElementById('generate-ai-code-btn').disabled = false;
             }
+        });
+
+        // Salvar Chave API Manualmente
+        document.getElementById('save-gemini-key-btn').addEventListener('click', async () => {
+            const key = document.getElementById('gemini-key-input').value;
+            if(!key) return alert('Insira uma chave válida.');
+            
+            const res = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/save-gemini-config'); ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_key: key })
+            });
+            const data = await res.json();
+            alert(data.message);
+            location.reload(); // Recarrega para aplicar
         });
 
         // Função Genérica para renderizar HTML em Iframe com Tailwind
