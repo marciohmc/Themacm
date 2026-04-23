@@ -17,7 +17,7 @@
         <div class="container mx-auto px-6 md:px-12 flex items-center justify-between">
             <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-3">
                 <?php if ( has_custom_logo() ) : ?>
-                    <div class="max-h-12 w-auto">
+                    <div class="h-12 w-auto flex items-center logo-container">
                         <?php the_custom_logo(); ?>
                     </div>
                 <?php else : ?>

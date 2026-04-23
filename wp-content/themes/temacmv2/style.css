@@ -41,6 +41,19 @@ p, .text-text-secondary, li, span {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Ajustes para o Logotipo Customizado */
+.logo-container img, 
+.custom-logo-link img {
+    height: 100% !important;
+    width: auto !important;
+    max-height: 48px !important;
+    display: block;
+}
+
+#site-footer .custom-logo-link img {
+    max-height: 32px !important;
+}
+
 /* Links e textos com a classe de azul elétrico */
 a, .text-electric-blue {
     color: #00a3ff !important;
