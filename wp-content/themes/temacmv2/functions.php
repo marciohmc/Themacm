@@ -381,6 +381,18 @@ function cm_ai_publish_page() {
             </div>
             <div id="ai-chat-status" style="margin-top: 10px; font-size: 12px; color: #3b82f6; min-height: 15px;"></div>
             
+            <!-- ÁREA PARA VERIFICAR RESPOSTAS DA IA -->
+            <details id="ai-debug-interaction" style="margin-top: 15px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+                <summary style="font-size: 11px; cursor: pointer; color: #64748b; padding: 8px;">🔍 Ver Prompt e Resposta Técnica (Interação)</summary>
+                <div style="padding: 10px; border-top: 1px solid #334155;">
+                    <div style="margin-bottom: 5px; color: #3b82f6; font-size: 10px; font-weight: bold;">ÚLTIMO PROMPT:</div>
+                    <div id="last-prompt-view" style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; padding: 5px; background: rgba(255,255,255,0.05); border-radius: 3px;">Nenhum prompt enviado ainda.</div>
+                    
+                    <div style="margin-bottom: 5px; color: #10b981; font-size: 10px; font-weight: bold;">RESPOSTA DA IA:</div>
+                    <textarea id="ai-raw-content-view" style="width: 100%; height: 120px; background: #0f172a; color: #10b981; border: 1px solid #334155; font-family: monospace; font-size: 10px; border-radius: 4px;" readonly placeholder="A resposta bruta aparecerá aqui para verificação..."></textarea>
+                </div>
+            </details>
+            
             <!-- CONFIGURAÇÃO DE CHAVE (MINIMIZÁVEL) -->
             <details style="margin-top: 15px; border-top: 1px solid #334155; pt-15px;">
                 <summary style="font-size: 11px; cursor: pointer; color: #64748b;">⚙️ Configurar Ponte Gemini (caso necessário)</summary>
@@ -573,6 +585,10 @@ function cm_ai_publish_page() {
                 });
                 const data = await response.json();
                 
+                // Atualiza a área de verificação de resposta para o usuário
+                document.getElementById('last-prompt-view').innerText = prompt;
+                document.getElementById('ai-raw-content-view').value = data.content || JSON.stringify(data);
+
                 if(data.status === 'success' && data.content) {
                     const editorField = document.getElementById('ai-content-input');
                     if(editorField) {
