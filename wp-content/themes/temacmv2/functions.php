@@ -211,7 +211,7 @@ function cm_handle_gemini_chat( $request ) {
         )
     );
 
-    $response = wp_remote_post( "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=" . $api_key, array(
+    $response = wp_remote_post( "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" . $api_key, array(
         'headers'     => array( 'Content-Type' => 'application/json' ),
         'body'        => json_encode( $body ),
         'timeout'     => 60,
