@@ -142,6 +142,19 @@ function cm_restore_version( $request ) {
     return new WP_Error( 'fail', 'Erro ao restaurar', array( 'status' => 500 ) );
 }
 
+// Adicionar Menu Admin
+add_action('admin_menu', function() {
+    add_menu_page(
+        'Huxxconect AI Studio',
+        'AI Publish',
+        'manage_options',
+        'ai-publish-studio',
+        'cm_ai_publish_page',
+        'dashicons-performance',
+        2
+    );
+});
+
 // Interface da Página de Publicação (Versão Pro com Preview e Histórico)
 function cm_ai_publish_page() {
     ?>
