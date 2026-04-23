@@ -82,8 +82,22 @@ add_action( 'rest_api_init', function () {
         'permission_callback' => '__return_true',
     ) );
 
-    // Rota para buscar Histórico (Revisões)
-    register_rest_route( 'cm-global/v1', '/get-history', array(
+    // Rota para buscar lista de páginas
+    register_rest_route( 'cm-global/v1', '/get-pages', array(
+        'methods' => 'GET',
+        'callback' => 'cm_get_all_pages',
+        'permission_callback' => '__return_true',
+    ) );
+
+    // Rota para buscar conteúdo de uma página específica
+    register_rest_route( 'cm-global/v1', '/get-page-content/(?P<id>\d+)', array(
+        'methods' => 'GET',
+        'callback' => 'cm_get_page_content_by_id',
+        'permission_callback' => '__return_true',
+    ) );
+
+    // Rota para buscar Histórico (Revisões) de uma página/post específico
+    register_rest_route( 'cm-global/v1', '/get-history/(?P<id>\d+)', array(
         'methods' => 'GET',
         'callback' => 'cm_get_layout_history',
         'permission_callback' => '__return_true',
@@ -95,27 +109,72 @@ add_action( 'rest_api_init', function () {
         'callback' => 'cm_restore_version',
         'permission_callback' => '__return_true',
     ) );
+
+    // Rota Universal para Salvar (Página ou Post)
+    register_rest_route( 'cm-global/v1', '/save-content', array(
+        'methods' => 'POST',
+        'callback' => 'cm_handle_save_content',
+        'permission_callback' => '__return_true',
+    ) );
 } );
 
-// Callback para atualizar a home
-function cm_handle_layout_update( $request ) {
-    $params = $request->get_json_params();
-    $content = $params['content'];
-    $home_id = get_option( 'page_on_front' );
-    if ( $home_id ) {
-        // O wp_update_post gera automaticamente uma revisão no WP
-        wp_update_post( array('ID' => $home_id, 'post_content' => $content) );
-        return new WP_REST_Response( array( 'status' => 'success', 'message' => 'Home Page atualizada e Snaphot criado!' ), 200 );
+// Buscar todas as páginas
+function cm_get_all_pages() {
+    $pages = get_pages();
+    $result = array();
+    foreach ( $pages as $page ) {
+        $result[] = array(
+            'id'    => $page->ID,
+            'title' => $page->post_title,
+            'url'   => get_permalink($page->ID)
+        );
     }
-    return new WP_Error( 'no_home', 'Pagina Inicial não definida', array( 'status' => 404 ) );
+    return $result;
 }
 
-// Callback para buscar histórico
-function cm_get_layout_history() {
-    $home_id = get_option( 'page_on_front' );
-    if ( !$home_id ) return array();
+// Buscar conteúdo de página
+function cm_get_page_content_by_id( $request ) {
+    $id = $request['id'];
+    $post = get_post($id);
+    if ( $post ) {
+        return array( 'content' => $post->post_content );
+    }
+    return new WP_Error( 'not_found', 'Página não encontrada', array( 'status' => 404 ) );
+}
+
+// Callback universal para salvar
+function cm_handle_save_content( $request ) {
+    $params = $request->get_json_params();
+    $target = $params['target']; // 'page' ou 'new_post' ou 'new_page'
+    $content = $params['content'];
+    $title = $params['title'];
+    $id = isset($params['id']) ? $params['id'] : null;
+
+    if ( $target === 'new_post' || $target === 'new_page' ) {
+        $post_type = ($target === 'new_post') ? 'post' : 'page';
+        $new_id = wp_insert_post( array(
+            'post_title'   => $title ? $title : 'Novo Item - ' . date('d/m/Y'),
+            'post_content' => $content,
+            'post_status'  => 'publish',
+            'post_type'    => $post_type,
+            'post_author'  => 1
+        ) );
+        if ( is_wp_error($new_id) ) return $new_id;
+        return array( 'status' => 'success', 'message' => 'Criado com sucesso!', 'url' => get_permalink($new_id), 'id' => $new_id );
+    } else {
+        // Atualizar existente
+        if ( !$id ) return new WP_Error( 'missing_id', 'ID necessário para atualizar', array( 'status' => 400 ) );
+        wp_update_post( array( 'ID' => $id, 'post_content' => $content, 'post_title' => $title ? $title : get_the_title($id) ) );
+        return array( 'status' => 'success', 'message' => 'Atualizado!', 'url' => get_permalink($id) );
+    }
+}
+
+// Callback para buscar histórico (Revisões)
+function cm_get_layout_history( $request ) {
+    $id = $request['id'];
+    if ( !$id ) return array();
     
-    $revisions = wp_get_post_revisions( $home_id, array( 'posts_per_page' => 10 ) );
+    $revisions = wp_get_post_revisions( $id, array( 'posts_per_page' => 10 ) );
     $history = array();
     
     foreach ( $revisions as $rev ) {
@@ -132,11 +191,11 @@ function cm_get_layout_history() {
 function cm_restore_version( $request ) {
     $params = $request->get_json_params();
     $rev_id = $params['version_id'];
-    $home_id = get_option( 'page_on_front' );
+    $target_id = $params['target_id'];
     
     $revision = wp_get_post_revision( $rev_id );
-    if ( $revision ) {
-        wp_update_post( array( 'ID' => $home_id, 'post_content' => $revision->post_content ) );
+    if ( $revision && $target_id ) {
+        wp_update_post( array( 'ID' => $target_id, 'post_content' => $revision->post_content ) );
         return array( 'status' => 'success', 'message' => 'Versão restaurada!', 'content' => $revision->post_content );
     }
     return new WP_Error( 'fail', 'Erro ao restaurar', array( 'status' => 500 ) );
@@ -167,27 +226,34 @@ function cm_ai_publish_page() {
             
             <!-- COLUNA ESQUERDA: EDITOR -->
             <div style="background: #fff; padding: 25px; border: 1px solid #ccd0d4; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                    <div style="flex: 1;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 8px;">1. Destino</label>
-                        <select id="ai-target-type" style="width: 250px; height: 35px;">
-                            <option value="home">Atualizar Página Inicial</option>
-                            <option value="post">Criar Artigo Blog</option>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; font-weight: bold; margin-bottom: 8px;">1. Destino / Ação</label>
+                        <select id="ai-target-type" style="width: 100%; height: 35px;">
+                            <optgroup label="Criar Novo">
+                                <option value="new_post">Novo Post Blog</option>
+                                <option value="new_page">Nova Página Estática</option>
+                            </optgroup>
+                            <optgroup label="Atualizar Existente" id="existing-pages-group">
+                                <!-- Preenchido via JS -->
+                            </optgroup>
                         </select>
                     </div>
 
-                    <div style="flex: 1; text-align: right;">
-                         <label style="display: block; font-weight: bold; margin-bottom: 8px;">🕒 Snapshots (Restauração)</label>
-                         <select id="ai-history-list" style="width: 200px; height: 35px;">
-                             <option value="">Carregando histórico...</option>
-                         </select>
-                         <button id="restore-btn" class="button" style="display:none;">Restaurar</button>
+                    <div style="text-align: right;">
+                         <label style="display: block; font-weight: bold; margin-bottom: 8px;">🕒 Snapshots da Seleção</label>
+                         <div style="display: flex; gap: 5px; justify-content: flex-end;">
+                            <select id="ai-history-list" style="width: 200px; height: 35px;">
+                                <option value="">Selecione um destino...</option>
+                            </select>
+                            <button id="restore-btn" class="button" style="display:none;">Voltar</button>
+                         </div>
                     </div>
                 </div>
 
-                <div id="title-wrapper" style="margin-bottom: 20px; display: none;">
-                    <label style="display: block; font-weight: bold; margin-bottom: 8px;">2. Título do Post</label>
-                    <input type="text" id="ai-post-title" style="width: 100%; height: 35px;" placeholder="Título dinâmico">
+                <div id="title-wrapper" style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px;">2. Título (Página ou Post)</label>
+                    <input type="text" id="ai-post-title" style="width: 100%; height: 35px;" placeholder="Ex: Serviços de Engenharia 2024">
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-bottom: 8px; align-items: center;">
@@ -247,28 +313,62 @@ function cm_ai_publish_page() {
         const toggleLiveBtn = document.getElementById('toggle-live-code');
         const liveWrapper = document.getElementById('live-code-wrapper');
         const copyBtn = document.getElementById('copy-to-draft');
+        const targetSelect = document.getElementById('ai-target-type');
+        const existingPagesGroup = document.getElementById('existing-pages-group');
+        const titleInput = document.getElementById('ai-post-title');
         
-        // Conteúdo atual em produção
-        let currentLiveContent = <?php 
-            $home_id = get_option('page_on_front');
-            echo json_encode($home_id ? get_post($home_id)->post_content : ''); 
-        ?>;
+        let currentLiveContent = "";
+        let pagesCache = [];
 
-        // Inicializa Visualizador de Código Live
-        liveView.value = currentLiveContent;
-
-        toggleLiveBtn.addEventListener('click', () => {
-            const isHidden = liveWrapper.style.display === 'none';
-            liveWrapper.style.display = isHidden ? 'block' : 'none';
-            toggleLiveBtn.innerText = isHidden ? 'Ocultar Código Produção' : 'Ver Código em Produção';
-        });
-
-        copyBtn.addEventListener('click', () => {
-            if(confirm('Isso substituirá o código no editor de rascunho. Continuar?')) {
-                input.value = currentLiveContent;
-                updateDraftPreview();
+        // 1. Carregar lista de páginas existentes
+        async function loadPagesList() {
+            const res = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/get-pages'); ?>');
+            pagesCache = await res.json();
+            existingPagesGroup.innerHTML = "";
+            pagesCache.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = "page_" + p.id;
+                opt.innerText = "Página: " + p.title;
+                existingPagesGroup.appendChild(opt);
+            });
+            
+            // Tentar selecionar a Home por padrão
+            const homeId = <?php echo get_option('page_on_front') ? get_option('page_on_front') : 'null'; ?>;
+            if(homeId) {
+                targetSelect.value = "page_" + homeId;
+                handleTargetChange();
             }
-        });
+        }
+
+        // 2. Lidar com mudança de destino
+        async function handleTargetChange() {
+            const val = targetSelect.value;
+            const status = document.getElementById('ai-status');
+            
+            if(val.startsWith("page_")) {
+                const id = val.split("_")[1];
+                const page = pagesCache.find(p => p.id == id);
+                titleInput.value = page ? page.title : "";
+                
+                status.innerText = "⏳ Carregando dados da página...";
+                const res = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/get-page-content/'); ?>' + id);
+                const data = await res.json();
+                currentLiveContent = data.content;
+                
+                liveView.value = currentLiveContent;
+                renderInFrame(production, currentLiveContent);
+                loadHistory(id);
+                status.innerText = "";
+            } else {
+                titleInput.value = "";
+                currentLiveContent = "";
+                liveView.value = "";
+                renderInFrame(production, "");
+                historySelect.innerHTML = '<option value="">Sem histórico (Conteúdo Novo)</option>';
+            }
+        }
+
+        targetSelect.addEventListener('change', handleTargetChange);
 
         // Função Genérica para renderizar HTML em Iframe com Tailwind
         function renderInFrame(iframe, content) {
@@ -294,9 +394,10 @@ function cm_ai_publish_page() {
                             h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
                             .card-glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 12px; }
                             .btn-primary { background: #3b82f6; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; text-decoration: none; display: inline-block; }
+                            img { max-width: 100%; height: auto; }
                         </style>
                     </head>
-                    <body>${content || '<div style="color: #64748b; text-align: center; margin-top: 50px;">Vazio</div>'}</body>
+                    <body>${content || '<div style="color: #64748b; text-align: center; margin-top: 50px;">Nenhum conteúdo definido</div>'}</body>
                 </html>
             `);
             doc.close();
@@ -307,19 +408,15 @@ function cm_ai_publish_page() {
             renderInFrame(preview, input.value);
         }
 
-        // Inicializa Previsão de Produção
-        function initProductionPreview() {
-            renderInFrame(production, currentLiveContent);
-        }
-
         input.addEventListener('input', updateDraftPreview);
 
         // Função para carregar histórico
-        async function loadHistory() {
+        async function loadHistory(id) {
+            if(!id) return;
             try {
-                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/get-history'); ?>');
+                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/get-history/'); ?>' + id);
                 const data = await response.json();
-                historySelect.innerHTML = '<option value="">Restaurar Snapshot...</option>';
+                historySelect.innerHTML = '<option value="">Snapshot da Página...</option>';
                 data.forEach(rev => {
                     historySelect.innerHTML += `<option value="${rev.id}">${rev.date} (${rev.author})</option>`;
                 });
@@ -331,56 +428,68 @@ function cm_ai_publish_page() {
         });
 
         restoreBtn.addEventListener('click', async () => {
+            const val = targetSelect.value;
+            if(!val.startsWith("page_")) return;
+            const targetId = val.split("_")[1];
+
             if(!confirm('Deseja restaurar esta versão?')) return;
             const res = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/restore-version'); ?>', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ version_id: historySelect.value })
+                body: JSON.stringify({ 
+                    version_id: historySelect.value,
+                    target_id: targetId
+                })
             });
             const data = await res.json();
             if(data.status === 'success') {
                 input.value = data.content;
                 updateDraftPreview();
-                alert('Versão restaurada no editor! Clique em "Publicar Live" para aplicar ao site.');
+                alert('Versão restaurada no editor! Clique em "Publicar Live" para aplicar.');
             }
         });
 
-        // Publish principal
+        // Publish principal Universal
         document.getElementById('publish-ai-btn').addEventListener('click', async () => {
             const status = document.getElementById('ai-status');
-            status.innerText = '⏳ Sincronizando...';
+            status.innerText = '⏳ Publicando com Huxley...';
             
-            const type = document.getElementById('ai-target-type').value;
-            const endpoint = type === 'home' ? 'update-layout' : 'create-post';
+            const target = targetSelect.value;
+            let id = null;
+            let actionType = target;
+
+            if(target.startsWith("page_")) {
+                id = target.split("_")[1];
+                actionType = "page";
+            }
             
-            const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/'); ?>' + endpoint, {
+            const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/save-content'); ?>', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
+                    target: actionType,
+                    id: id,
                     content: input.value,
-                    title: document.getElementById('ai-post-title').value
+                    title: titleInput.value
                 })
             });
+            
             const result = await response.json();
-            status.innerText = '✅ ' + result.message;
-            
-            // Sincroniza estado Live no Painel
-            if(type === 'home' && response.ok) {
-                currentLiveContent = input.value;
-                liveView.value = currentLiveContent;
-                renderInFrame(production, currentLiveContent);
+            if(response.ok) {
+                status.innerText = '✅ ' + result.message;
+                if(id || result.id) {
+                    const finalId = id || result.id;
+                    // Se for novo, recarrega a lista
+                    if(!id) await loadPagesList();
+                    targetSelect.value = "page_" + finalId;
+                    handleTargetChange();
+                }
+            } else {
+                status.innerText = '❌ ' + (result.message || 'Erro ao salvar');
             }
-            
-            loadHistory();
         });
 
-        document.getElementById('ai-target-type').addEventListener('change', (e) => {
-            document.getElementById('title-wrapper').style.display = e.target.value === 'post' ? 'block' : 'none';
-        });
-
-        loadHistory();
-        updateDraftPreview();
-        initProductionPreview();
+        loadPagesList();
         </script>
     </div>
     <?php
