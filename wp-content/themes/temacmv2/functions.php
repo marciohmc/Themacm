@@ -199,14 +199,29 @@ function cm_ai_publish_page() {
                 </div>
             </div>
 
-            <!-- PREVISÃO EM TEMPO REAL -->
-            <div style="background: #0f172a; padding: 15px; border-radius: 8px; border: 4px solid #1e293b;">
-                <h3 style="color: #3b82f6; margin-top: 0; font-family: sans-serif; display: flex; justify-content: space-between;">
-                    PREVISÃO EM TEMPO REAL (MESA DE ENGENHARIA)
-                    <span style="font-size: 11px; color: #64748b;">RENDERIZANDO NATIVAMENTE</span>
-                </h3>
-                <div style="background: white; border-radius: 4px; overflow: hidden; height: 500px;">
-                    <iframe id="preview-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+            <!-- ÁREA DE PREVISÃO DUPLA (SPLIT SCREEN) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #0f172a; padding: 20px; border-radius: 12px; border: 4px solid #1e293b;">
+                
+                <!-- PREVISÃO 1: PRODUÇÃO (ESTADO ATUAL) -->
+                <div>
+                     <h3 style="color: #64748b; margin-top: 0; font-family: sans-serif; font-size: 14px; display: flex; justify-content: space-between;">
+                        🔴 PRODUÇÃO (LIVE)
+                        <span style="font-size: 10px; font-weight: normal;">SINCRO: WP CORE</span>
+                    </h3>
+                    <div style="background: white; border-radius: 4px; overflow: hidden; height: 400px; border: 2px solid #ef4444; opacity: 0.8;">
+                        <iframe id="production-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
+                </div>
+
+                <!-- PREVISÃO 2: RASCUNHO (O QUE VOCÊ ESTÁ CRIANDO) -->
+                <div>
+                    <h3 style="color: #3b82f6; margin-top: 0; font-family: sans-serif; font-size: 14px; display: flex; justify-content: space-between;">
+                        🔵 MESA DE PROJETO (IA DRAFT)
+                        <span style="font-size: 10px; font-weight: normal;">RENDERIZANDO...</span>
+                    </h3>
+                    <div style="background: white; border-radius: 4px; overflow: hidden; height: 400px; border: 2px solid #3b82f6;">
+                        <iframe id="preview-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
                 </div>
             </div>
 
@@ -215,13 +230,19 @@ function cm_ai_publish_page() {
         <script>
         const input = document.getElementById('ai-content-input');
         const preview = document.getElementById('preview-frame');
+        const production = document.getElementById('production-frame');
         const historySelect = document.getElementById('ai-history-list');
         const restoreBtn = document.getElementById('restore-btn');
+        
+        // Conteúdo atual em produção
+        const liveContent = <?php 
+            $home_id = get_option('page_on_front');
+            echo json_encode($home_id ? get_post($home_id)->post_content : ''); 
+        ?>;
 
-        // Função para atualizar o Preview
-        function updatePreview() {
-            const content = input.value;
-            const doc = preview.contentDocument || preview.contentWindow.document;
+        // Função Genérica para renderizar HTML em Iframe com Tailwind
+        function renderInFrame(iframe, content) {
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
             doc.open();
             doc.write(`
                 <html>
@@ -239,19 +260,29 @@ function cm_ai_publish_page() {
                             }
                         <\/script>
                         <style>
-                            body { background: #0f172a; color: white; padding: 20px; font-family: 'Inter', sans-serif; }
+                            body { background: #0f172a; color: white; padding: 20px; font-family: 'Inter', sans-serif; overflow-x: hidden; }
                             h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
                             .card-glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 12px; }
                             .btn-primary { background: #3b82f6; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; text-decoration: none; display: inline-block; }
                         </style>
                     </head>
-                    <body>${content || '<div style="color: #64748b; text-align: center; margin-top: 100px;">Aguardando código para renderização...</div>'}</body>
+                    <body>${content || '<div style="color: #64748b; text-align: center; margin-top: 50px;">Vazio</div>'}</body>
                 </html>
             `);
             doc.close();
         }
 
-        input.addEventListener('input', updatePreview);
+        // Função para atualizar o Preview de Rascunho
+        function updateDraftPreview() {
+            renderInFrame(preview, input.value);
+        }
+
+        // Inicializa Previsão de Produção
+        function initProductionPreview() {
+            renderInFrame(production, liveContent);
+        }
+
+        input.addEventListener('input', updateDraftPreview);
 
         // Função para carregar histórico
         async function loadHistory() {
@@ -279,7 +310,7 @@ function cm_ai_publish_page() {
             const data = await res.json();
             if(data.status === 'success') {
                 input.value = data.content;
-                updatePreview();
+                updateDraftPreview();
                 alert('Versão restaurada no editor! Clique em "Publicar Live" para aplicar ao site.');
             }
         });
@@ -303,6 +334,11 @@ function cm_ai_publish_page() {
             const result = await response.json();
             status.innerText = '✅ ' + result.message;
             loadHistory();
+            
+            // Opcional: Atualizar produção após publicar (recarregar página ou iframe)
+            if(type === 'home') {
+                renderInFrame(production, input.value);
+            }
         });
 
         document.getElementById('ai-target-type').addEventListener('change', (e) => {
@@ -310,7 +346,8 @@ function cm_ai_publish_page() {
         });
 
         loadHistory();
-        updatePreview();
+        updateDraftPreview();
+        initProductionPreview();
         </script>
     </div>
     <?php
