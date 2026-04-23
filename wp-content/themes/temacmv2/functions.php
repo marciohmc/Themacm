@@ -64,6 +64,20 @@ function cm_global_v2_enqueue_scripts() {
 }
 add_action( 'wp_enqueue_scripts', 'cm_global_v2_enqueue_scripts' );
 
+/**
+ * Walker Custom para o Menu Tailwind
+ */
+class CM_Walker_Nav_Menu extends Walker_Nav_Menu {
+    function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
+        $classes = empty($item->classes) ? array() : (array) $item->classes;
+        $active_class = in_array('current-menu-item', $classes) ? 'text-[#3b82f6]' : 'text-slate-400 hover:text-white';
+        
+        $output .= '<a href="' . $item->url . '" class="' . $active_class . ' font-display font-medium text-sm tracking-wide transition-colors">';
+        $output .= $item->title;
+        $output .= '</a>';
+    }
+}
+
 // --- LÓGICA DE API E PUBLICAÇÃO AI ---
 
 // Rota de REST API

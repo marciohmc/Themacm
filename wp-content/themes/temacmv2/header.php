@@ -26,10 +26,17 @@
             </a>
 
             <nav class="hidden md:flex items-center gap-10">
-                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="text-[#3b82f6] font-display font-medium text-sm tracking-wide">Início</a>
-                <a href="#servicos" class="text-slate-400 hover:text-white font-display font-medium text-sm tracking-wide transition-colors">Serviços</a>
-                <a href="#diferenciais" class="text-slate-400 hover:text-white font-display font-medium text-sm tracking-wide transition-colors">Diferenciais</a>
-                <a href="#sobre" class="text-slate-400 hover:text-white font-display font-medium text-sm tracking-wide transition-colors">Sobre Nós</a>
+                <?php 
+                wp_nav_menu( array(
+                    'theme_location' => 'primary',
+                    'container'      => false,
+                    'menu_class'     => 'flex items-center gap-10',
+                    'fallback_cb'    => '__return_false',
+                    'items_wrap'     => '%3$s',
+                    'walker'         => new CM_Walker_Nav_Menu()
+                ) );
+                ?>
+                <!-- Botão de Contato fixo ou dinâmico -->
                 <a href="#contato" class="px-5 py-2 bg-white/5 border border-white/10 text-white rounded-full font-display font-medium text-sm hover:bg-white/10 transition-all">Contato</a>
             </nav>
 
