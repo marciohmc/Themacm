@@ -186,14 +186,28 @@ function cm_handle_gemini_chat( $request ) {
     Retorne APENAS o código HTML limpo, sem explicações, sem blocos de código markdown (```html), apenas o conteúdo que será inserido no body.";
 
     $body = array(
+        'system_instruction' => array(
+            'parts' => array( array('text' => $system_instruction) )
+        ),
         'contents' => array(
             array(
                 'role' => 'user',
                 'parts' => array(
-                    array('text' => "Instrução de Sistema: " . $system_instruction),
-                    array('text' => "Solicitação do Usuário: " . $user_prompt)
+                    array('text' => $user_prompt)
                 )
             )
+        ),
+        'generationConfig' => array(
+            'temperature' => 0.4,
+            'topP' => 0.95,
+            'topK' => 40,
+            'maxOutputTokens' => 8192,
+        ),
+        'safetySettings' => array(
+            array( 'category' => 'HARM_CATEGORY_HARASSMENT', 'threshold' => 'BLOCK_NONE' ),
+            array( 'category' => 'HARM_CATEGORY_HATE_SPEECH', 'threshold' => 'BLOCK_NONE' ),
+            array( 'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold' => 'BLOCK_NONE' ),
+            array( 'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold' => 'BLOCK_NONE' )
         )
     );
 
@@ -207,10 +221,16 @@ function cm_handle_gemini_chat( $request ) {
         return $response;
     }
 
-    $data = json_decode( wp_remote_retrieve_body( $response ), true );
+    $body_text = wp_remote_retrieve_body( $response );
+    $data = json_decode( $body_text, true );
     
     if ( !isset($data['candidates'][0]['content']['parts'][0]['text']) ) {
-        return new WP_Error( 'ai_fail', 'Resposta da IA inválida ou vazia: ' . wp_remote_retrieve_body($response), array( 'status' => 500 ) );
+        $error_msg = 'A IA não retornou conteúdo. ';
+        if ( isset($data['error']['message']) ) $error_msg .= 'Motivo: ' . $data['error']['message'];
+        elseif ( isset($data['promptFeedback']['blockReason']) ) $error_msg .= 'Filtro de segurança: ' . $data['promptFeedback']['blockReason'];
+        else $error_msg .= 'Resposta técnica: ' . $body_text;
+        
+        return new WP_Error( 'ai_fail', $error_msg, array( 'status' => 500 ) );
     }
 
     $ai_text = $data['candidates'][0]['content']['parts'][0]['text'];
@@ -532,20 +552,16 @@ function cm_ai_publish_page() {
                 const data = await response.json();
                 
                 if(data.status === 'success' && data.content) {
-                    // Seleção direta de segurança
                     const editorField = document.getElementById('ai-content-input');
                     if(editorField) {
                         editorField.value = data.content;
-                        // Atualiza a mesa de projeto imediatamente
                         renderInFrame(preview, data.content);
-                        
-                        chatStatus.innerText = '✨ Código gerado e aplicado ao rascunho!';
+                        chatStatus.innerText = '✨ Código gerado com sucesso!';
                         document.getElementById('ai-chat-prompt').value = '';
-                    } else {
-                        chatStatus.innerText = '❌ Erro: Editor de código não encontrado no DOM.';
                     }
                 } else {
-                    chatStatus.innerText = '❌ Erro: A IA retornou um conteúdo vazio ou inválido.';
+                    // Mostra a mensagem de erro real vinda do PHP
+                    chatStatus.innerText = '❌ Erro: ' + (data.message || 'Resposta inesperada da IA.');
                 }
             } catch (e) {
                 chatStatus.innerText = '❌ Erro de conexão com a IA.';
