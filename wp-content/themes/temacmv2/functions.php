@@ -81,6 +81,20 @@ add_action( 'rest_api_init', function () {
         'callback' => 'cm_handle_create_post',
         'permission_callback' => '__return_true',
     ) );
+
+    // Rota para buscar Histórico (Revisões)
+    register_rest_route( 'cm-global/v1', '/get-history', array(
+        'methods' => 'GET',
+        'callback' => 'cm_get_layout_history',
+        'permission_callback' => '__return_true',
+    ) );
+
+    // Rota para Restaurar Versão
+    register_rest_route( 'cm-global/v1', '/restore-version', array(
+        'methods' => 'POST',
+        'callback' => 'cm_restore_version',
+        'permission_callback' => '__return_true',
+    ) );
 } );
 
 // Callback para atualizar a home
@@ -89,143 +103,201 @@ function cm_handle_layout_update( $request ) {
     $content = $params['content'];
     $home_id = get_option( 'page_on_front' );
     if ( $home_id ) {
+        // O wp_update_post gera automaticamente uma revisão no WP
         wp_update_post( array('ID' => $home_id, 'post_content' => $content) );
-        return new WP_REST_Response( array( 'status' => 'success', 'message' => 'Home Page atualizada!' ), 200 );
+        return new WP_REST_Response( array( 'status' => 'success', 'message' => 'Home Page atualizada e Snaphot criado!' ), 200 );
     }
     return new WP_Error( 'no_home', 'Pagina Inicial não definida', array( 'status' => 404 ) );
 }
 
-// Callback para criar post
-function cm_handle_create_post( $request ) {
-    $params = $request->get_json_params();
-    $content = $params['content'];
-    $title = !empty($params['title']) ? $params['title'] : 'Novo Artigo Industrial - ' . date('d/m/Y');
+// Callback para buscar histórico
+function cm_get_layout_history() {
+    $home_id = get_option( 'page_on_front' );
+    if ( !$home_id ) return array();
     
-    $post_id = wp_insert_post( array(
-        'post_title'   => $title,
-        'post_content' => $content,
-        'post_status'  => 'publish',
-        'post_author'  => 1,
-        'post_type'    => 'post'
-    ) );
-
-    if ( is_wp_error($post_id) ) {
-        return new WP_Error( 'post_fail', 'Erro ao criar post', array( 'status' => 500 ) );
+    $revisions = wp_get_post_revisions( $home_id, array( 'posts_per_page' => 10 ) );
+    $history = array();
+    
+    foreach ( $revisions as $rev ) {
+        $history[] = array(
+            'id' => $rev->ID,
+            'date' => get_the_time( 'd/m H:i', $rev->ID ),
+            'author' => get_the_author_meta( 'display_name', $rev->post_author )
+        );
     }
-
-    return new WP_REST_Response( array( 
-        'status' => 'success', 
-        'message' => 'Artigo publicado!',
-        'url' => get_permalink($post_id)
-    ), 200 );
+    return $history;
 }
 
-// Adicionar Menu Admin
-add_action('admin_menu', function() {
-    add_menu_page(
-        'Huxxconect AI Studio',
-        'AI Publish',
-        'manage_options',
-        'ai-publish-studio',
-        'cm_ai_publish_page',
-        'dashicons-performance',
-        2
-    );
-});
+// Callback para restaurar versão
+function cm_restore_version( $request ) {
+    $params = $request->get_json_params();
+    $rev_id = $params['version_id'];
+    $home_id = get_option( 'page_on_front' );
+    
+    $revision = wp_get_post_revision( $rev_id );
+    if ( $revision ) {
+        wp_update_post( array( 'ID' => $home_id, 'post_content' => $revision->post_content ) );
+        return array( 'status' => 'success', 'message' => 'Versão restaurada!', 'content' => $revision->post_content );
+    }
+    return new WP_Error( 'fail', 'Erro ao restaurar', array( 'status' => 500 ) );
+}
 
-// Interface da Página de Publicação
+// Interface da Página de Publicação (Versão Pro com Preview e Histórico)
 function cm_ai_publish_page() {
     ?>
     <div class="wrap">
         <h1 style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 30px;">🚀</span> Huxxconect AI Studio: Publicação Rápida
+            <span style="font-size: 30px;">🚀</span> Huxxconect AI Studio: Versão 2.1 Pro
         </h1>
-        <p>Crie conteúdos no Gemini e publique diretamente no seu site WordPress.</p>
         
-        <div style="background: #fff; padding: 30px; border: 1px solid #ccd0d4; border-radius: 8px; max-width: 1000px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-            <div style="margin-bottom: 25px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px;">1. O que deseja fazer?</label>
-                <select id="ai-target-type" style="width: 100%; height: 40px; font-size: 14px; border-radius: 4px;">
-                    <option value="home">Atualizar Página Inicial (Home)</option>
-                    <option value="post">Criar Novo Artigo no Blog</option>
-                </select>
-            </div>
-
-            <div id="title-wrapper" style="margin-bottom: 25px; display: none;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px;">2. Título do Artigo</label>
-                <input type="text" id="ai-post-title" style="width: 100%; height: 40px;" placeholder="Ex: A Importância da Manutenção de Média Tensão">
-            </div>
-
-            <div style="margin-bottom: 25px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px;">3. Conteúdo (HTML / Tailwind)</label>
-                <textarea id="ai-content-input" style="width: 100%; height: 500px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; padding: 15px; border-radius: 4px; background: #f9f9f9;" placeholder="Cole o código <section> ou <article> gerado pelo Gemini aqui..."></textarea>
-            </div>
+        <div style="display: grid; grid-template-cols: 1fr; gap: 20px; margin-top: 20px;">
             
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <button id="publish-ai-btn" class="button button-primary button-large" style="height: 48px; padding: 0 30px; font-weight: bold; font-size: 16px;">
-                    Publicar Agora
-                </button>
-                <span id="ai-status" style="font-weight: bold; font-size: 14px;"></span>
+            <!-- COLUNA ESQUERDA: EDITOR -->
+            <div style="background: #fff; padding: 25px; border: 1px solid #ccd0d4; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 8px;">1. Destino</label>
+                        <select id="ai-target-type" style="width: 250px; height: 35px;">
+                            <option value="home">Atualizar Página Inicial</option>
+                            <option value="post">Criar Artigo Blog</option>
+                        </select>
+                    </div>
+
+                    <div style="flex: 1; text-align: right;">
+                         <label style="display: block; font-weight: bold; margin-bottom: 8px;">🕒 Snapshots (Restauração)</label>
+                         <select id="ai-history-list" style="width: 200px; height: 35px;">
+                             <option value="">Carregando histórico...</option>
+                         </select>
+                         <button id="restore-btn" class="button" style="display:none;">Restaurar</button>
+                    </div>
+                </div>
+
+                <div id="title-wrapper" style="margin-bottom: 20px; display: none;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px;">2. Título do Post</label>
+                    <input type="text" id="ai-post-title" style="width: 100%; height: 35px;" placeholder="Título dinâmico">
+                </div>
+
+                <label style="display: block; font-weight: bold; margin-bottom: 8px;">3. Código HTML / Tailwind</label>
+                <textarea id="ai-content-input" style="width: 100%; height: 300px; font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #fafafa; border-radius: 4px;" placeholder="Cole aqui..."></textarea>
+                
+                <div style="margin-top: 20px; display: flex; align-items: center; gap: 15px;">
+                    <button id="publish-ai-btn" class="button button-primary button-large" style="padding: 0 40px; height: 45px; font-weight: bold;">Publicar Live</button>
+                    <span id="ai-status"></span>
+                </div>
             </div>
 
-            <div id="post-link-wrapper" style="margin-top: 20px; display: none;">
-                <a id="view-post-link" href="#" target="_blank" class="button">Visualizar Artigo Publicado →</a>
+            <!-- PREVISÃO EM TEMPO REAL -->
+            <div style="background: #0f172a; padding: 15px; border-radius: 8px; border: 4px solid #1e293b;">
+                <h3 style="color: #3b82f6; margin-top: 0; font-family: sans-serif; display: flex; justify-content: space-between;">
+                    PREVISÃO EM TEMPO REAL (MESA DE ENGENHARIA)
+                    <span style="font-size: 11px; color: #64748b;">RENDERIZANDO NATIVAMENTE</span>
+                </h3>
+                <div style="background: white; border-radius: 4px; overflow: hidden; height: 500px;">
+                    <iframe id="preview-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
             </div>
+
         </div>
 
         <script>
-        const targetType = document.getElementById('ai-target-type');
-        const titleWrapper = document.getElementById('title-wrapper');
-        const status = document.getElementById('ai-status');
-        const linkWrapper = document.getElementById('post-link-wrapper');
-        const viewLink = document.getElementById('view-post-link');
+        const input = document.getElementById('ai-content-input');
+        const preview = document.getElementById('preview-frame');
+        const historySelect = document.getElementById('ai-history-list');
+        const restoreBtn = document.getElementById('restore-btn');
 
-        targetType.addEventListener('change', (e) => {
-            titleWrapper.style.display = e.target.value === 'post' ? 'block' : 'none';
+        // Função para atualizar o Preview
+        function updatePreview() {
+            const content = input.value;
+            const doc = preview.contentDocument || preview.contentWindow.document;
+            doc.open();
+            doc.write(`
+                <html>
+                    <head>
+                        <script src="https://cdn.tailwindcss.com"><\/script>
+                        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+                        <script>
+                            tailwind.config = {
+                                theme: {
+                                    extend: {
+                                        colors: { 'slate-dark': '#0f172a', 'electric-blue': '#3b82f6', 'text-primary': '#f8fafc', 'text-secondary': '#94a3b8', 'border-color': '#1e293b' },
+                                        fontFamily: { 'sans': ['Inter', 'sans-serif'], 'display': ['Space Grotesk', 'sans-serif'] }
+                                    }
+                                }
+                            }
+                        <\/script>
+                        <style>
+                            body { background: #0f172a; color: white; padding: 20px; font-family: 'Inter', sans-serif; }
+                            h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+                            .card-glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 12px; }
+                            .btn-primary { background: #3b82f6; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; text-decoration: none; display: inline-block; }
+                        </style>
+                    </head>
+                    <body>${content || '<div style="color: #64748b; text-align: center; margin-top: 100px;">Aguardando código para renderização...</div>'}</body>
+                </html>
+            `);
+            doc.close();
+        }
+
+        input.addEventListener('input', updatePreview);
+
+        // Função para carregar histórico
+        async function loadHistory() {
+            try {
+                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/get-history'); ?>');
+                const data = await response.json();
+                historySelect.innerHTML = '<option value="">Restaurar Snapshot...</option>';
+                data.forEach(rev => {
+                    historySelect.innerHTML += `<option value="${rev.id}">${rev.date} (${rev.author})</option>`;
+                });
+            } catch (e) {}
+        }
+
+        historySelect.addEventListener('change', (e) => {
+            restoreBtn.style.display = e.target.value ? 'inline-block' : 'none';
         });
 
-        document.getElementById('publish-ai-btn').addEventListener('click', async () => {
-            const content = document.getElementById('ai-content-input').value;
-            const type = targetType.value;
-            const title = document.getElementById('ai-post-title').value;
-
-            if(!content) { alert('Erro: O conteúdo está vazio.'); return; }
-            if(type === 'post' && !title) { alert('Erro: Defina um título para o post.'); return; }
-
-            status.innerText = '⏳ Sincronizando com Huxley...';
-            status.style.color = '#72777c';
-            linkWrapper.style.display = 'none';
-
-            const endpoint = type === 'home' ? 'update-layout' : 'create-post';
-            
-            try {
-                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/'); ?>' + endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        content: content,
-                        title: title
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if(response.ok) {
-                    status.innerText = '✅ ' + result.message;
-                    status.style.color = '#46b450';
-                    if(result.url) {
-                        viewLink.href = result.url;
-                        linkWrapper.style.display = 'block';
-                    }
-                } else {
-                    status.innerText = '❌ Erro: ' + (result.message || 'Falha na publicação');
-                    status.style.color = '#dc3232';
-                }
-            } catch (e) {
-                status.innerText = '❌ Erro de conexão com o servidor.';
-                status.style.color = '#dc3232';
+        restoreBtn.addEventListener('click', async () => {
+            if(!confirm('Deseja restaurar esta versão?')) return;
+            const res = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/restore-version'); ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ version_id: historySelect.value })
+            });
+            const data = await res.json();
+            if(data.status === 'success') {
+                input.value = data.content;
+                updatePreview();
+                alert('Versão restaurada no editor! Clique em "Publicar Live" para aplicar ao site.');
             }
         });
+
+        // Publish principal
+        document.getElementById('publish-ai-btn').addEventListener('click', async () => {
+            const status = document.getElementById('ai-status');
+            status.innerText = '⏳ Sincronizando...';
+            
+            const type = document.getElementById('ai-target-type').value;
+            const endpoint = type === 'home' ? 'update-layout' : 'create-post';
+            
+            const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/'); ?>' + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    content: input.value,
+                    title: document.getElementById('ai-post-title').value
+                })
+            });
+            const result = await response.json();
+            status.innerText = '✅ ' + result.message;
+            loadHistory();
+        });
+
+        document.getElementById('ai-target-type').addEventListener('change', (e) => {
+            document.getElementById('title-wrapper').style.display = e.target.value === 'post' ? 'block' : 'none';
+        });
+
+        loadHistory();
+        updatePreview();
         </script>
     </div>
     <?php
