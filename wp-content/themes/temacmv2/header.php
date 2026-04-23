@@ -36,8 +36,6 @@
                     'walker'         => new CM_Walker_Nav_Menu()
                 ) );
                 ?>
-                <!-- Botão de Contato fixo ou dinâmico -->
-                <a href="#contato" class="px-5 py-2 bg-white/5 border border-white/10 text-white rounded-full font-display font-medium text-sm hover:bg-white/10 transition-all">Contato</a>
             </nav>
 
             <div class="md:hidden">
