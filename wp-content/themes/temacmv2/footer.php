@@ -48,16 +48,58 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const header = document.getElementById('site-header');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenuDrawer = document.getElementById('mobile-menu-drawer');
+            const menuIconOpen = document.getElementById('menu-icon-open');
+            const menuIconClose = document.getElementById('menu-icon-close');
+
+            // Scroll Logic
             window.addEventListener('scroll', () => {
                 if (window.scrollY > 50) {
                     header.classList.add('shadow-2xl');
-                    header.classList.remove('h-20');
+                    header.classList.remove('h-24');
                     header.classList.add('h-16');
+                    // Sync mobile drawer position if open
+                    mobileMenuDrawer.classList.remove('top-24');
+                    mobileMenuDrawer.classList.add('top-16');
                 } else {
                     header.classList.remove('shadow-2xl');
-                    header.classList.add('h-20');
+                    header.classList.add('h-24');
                     header.classList.remove('h-16');
+                    mobileMenuDrawer.classList.add('top-24');
+                    mobileMenuDrawer.classList.remove('top-16');
                 }
+            });
+
+            // Mobile Menu Logic
+            let isMenuOpen = false;
+
+            mobileMenuToggle.addEventListener('click', () => {
+                isMenuOpen = !isMenuOpen;
+                
+                if (isMenuOpen) {
+                    mobileMenuDrawer.classList.remove('translate-x-full');
+                    menuIconOpen.classList.add('hidden');
+                    menuIconClose.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // Lock scroll
+                } else {
+                    mobileMenuDrawer.classList.add('translate-x-full');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                    document.body.style.overflow = ''; // Unlock scroll
+                }
+            });
+
+            // Close menu on link click
+            const mobileLinks = mobileMenuDrawer.querySelectorAll('a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    isMenuOpen = false;
+                    mobileMenuDrawer.classList.add('translate-x-full');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
             });
         });
     </script>

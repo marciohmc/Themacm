@@ -39,9 +39,29 @@
             </nav>
 
             <div class="md:hidden">
-                <button id="mobile-menu-toggle" class="text-text-primary p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <button id="mobile-menu-toggle" class="text-white p-2 focus:outline-none">
+                    <svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <svg id="menu-icon-close" class="hidden" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
+            </div>
+        </div>
+
+        <!-- MOBILE MENU DRAWER (HIDDEN BY DEFAULT) -->
+        <div id="mobile-menu-drawer" class="fixed inset-0 top-24 bg-[#0f172a]/95 backdrop-blur-xl z-40 transform translate-x-full transition-transform duration-500 ease-in-out md:hidden flex flex-col p-8 border-t border-white/5">
+            <nav class="flex flex-col gap-6">
+                <?php 
+                wp_nav_menu( array(
+                    'theme_location' => 'primary',
+                    'container'      => false,
+                    'menu_class'     => 'flex flex-col gap-6 text-xl font-display font-bold text-white',
+                    'fallback_cb'    => '__return_false',
+                    'items_wrap'     => '%3$s'
+                ) );
+                ?>
+            </nav>
+            <div class="mt-auto pb-12">
+                <div class="w-12 h-1 bg-blue-500 mb-6"></div>
+                <p class="text-slate-400 text-sm font-mono uppercase tracking-widest italic">C&M Global Services</p>
             </div>
         </div>
     </header>
