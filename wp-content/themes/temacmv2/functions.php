@@ -68,9 +68,17 @@ add_action( 'wp_enqueue_scripts', 'cm_global_v2_enqueue_scripts' );
 
 // Rota de REST API
 add_action( 'rest_api_init', function () {
+    // Rota para Atualizar Home
     register_rest_route( 'cm-global/v1', '/update-layout', array(
         'methods' => 'POST',
         'callback' => 'cm_handle_layout_update',
+        'permission_callback' => '__return_true',
+    ) );
+
+    // Rota para Criar Blog Post
+    register_rest_route( 'cm-global/v1', '/create-post', array(
+        'methods' => 'POST',
+        'callback' => 'cm_handle_create_post',
         'permission_callback' => '__return_true',
     ) );
 } );
@@ -82,15 +90,40 @@ function cm_handle_layout_update( $request ) {
     $home_id = get_option( 'page_on_front' );
     if ( $home_id ) {
         wp_update_post( array('ID' => $home_id, 'post_content' => $content) );
-        return new WP_REST_Response( array( 'status' => 'success', 'message' => 'Layout atualizado!' ), 200 );
+        return new WP_REST_Response( array( 'status' => 'success', 'message' => 'Home Page atualizada!' ), 200 );
     }
     return new WP_Error( 'no_home', 'Pagina Inicial não definida', array( 'status' => 404 ) );
+}
+
+// Callback para criar post
+function cm_handle_create_post( $request ) {
+    $params = $request->get_json_params();
+    $content = $params['content'];
+    $title = !empty($params['title']) ? $params['title'] : 'Novo Artigo Industrial - ' . date('d/m/Y');
+    
+    $post_id = wp_insert_post( array(
+        'post_title'   => $title,
+        'post_content' => $content,
+        'post_status'  => 'publish',
+        'post_author'  => 1,
+        'post_type'    => 'post'
+    ) );
+
+    if ( is_wp_error($post_id) ) {
+        return new WP_Error( 'post_fail', 'Erro ao criar post', array( 'status' => 500 ) );
+    }
+
+    return new WP_REST_Response( array( 
+        'status' => 'success', 
+        'message' => 'Artigo publicado!',
+        'url' => get_permalink($post_id)
+    ), 200 );
 }
 
 // Adicionar Menu Admin
 add_action('admin_menu', function() {
     add_menu_page(
-        'AI Studio Publish',
+        'Huxxconect AI Studio',
         'AI Publish',
         'manage_options',
         'ai-publish-studio',
@@ -104,33 +137,93 @@ add_action('admin_menu', function() {
 function cm_ai_publish_page() {
     ?>
     <div class="wrap">
-        <h1>🚀 AI Studio: Publicação Rápida</h1>
-        <p>Gere o layout no Gemini e cole abaixo para atualizar sua Home Page instantaneamente.</p>
+        <h1 style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 30px;">🚀</span> Huxxconect AI Studio: Publicação Rápida
+        </h1>
+        <p>Crie conteúdos no Gemini e publique diretamente no seu site WordPress.</p>
         
-        <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px;">
-            <h3>Conteúdo HTML (Tailwind)</h3>
-            <textarea id="ai-content-input" style="width: 100%; height: 400px; font-family: monospace;" placeholder="Cole o código <section> aqui..."></textarea>
-            <br><br>
-            <button id="publish-ai-btn" class="button button-primary button-large">Atualizar Home Page Agora</button>
-            <span id="ai-status" style="margin-left: 15px; font-weight: bold;"></span>
+        <div style="background: #fff; padding: 30px; border: 1px solid #ccd0d4; border-radius: 8px; max-width: 1000px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px;">1. O que deseja fazer?</label>
+                <select id="ai-target-type" style="width: 100%; height: 40px; font-size: 14px; border-radius: 4px;">
+                    <option value="home">Atualizar Página Inicial (Home)</option>
+                    <option value="post">Criar Novo Artigo no Blog</option>
+                </select>
+            </div>
+
+            <div id="title-wrapper" style="margin-bottom: 25px; display: none;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px;">2. Título do Artigo</label>
+                <input type="text" id="ai-post-title" style="width: 100%; height: 40px;" placeholder="Ex: A Importância da Manutenção de Média Tensão">
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px;">3. Conteúdo (HTML / Tailwind)</label>
+                <textarea id="ai-content-input" style="width: 100%; height: 500px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; padding: 15px; border-radius: 4px; background: #f9f9f9;" placeholder="Cole o código <section> ou <article> gerado pelo Gemini aqui..."></textarea>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <button id="publish-ai-btn" class="button button-primary button-large" style="height: 48px; padding: 0 30px; font-weight: bold; font-size: 16px;">
+                    Publicar Agora
+                </button>
+                <span id="ai-status" style="font-weight: bold; font-size: 14px;"></span>
+            </div>
+
+            <div id="post-link-wrapper" style="margin-top: 20px; display: none;">
+                <a id="view-post-link" href="#" target="_blank" class="button">Visualizar Artigo Publicado →</a>
+            </div>
         </div>
 
         <script>
+        const targetType = document.getElementById('ai-target-type');
+        const titleWrapper = document.getElementById('title-wrapper');
+        const status = document.getElementById('ai-status');
+        const linkWrapper = document.getElementById('post-link-wrapper');
+        const viewLink = document.getElementById('view-post-link');
+
+        targetType.addEventListener('change', (e) => {
+            titleWrapper.style.display = e.target.value === 'post' ? 'block' : 'none';
+        });
+
         document.getElementById('publish-ai-btn').addEventListener('click', async () => {
             const content = document.getElementById('ai-content-input').value;
-            const status = document.getElementById('ai-status');
-            if(!content) { alert('Cole o conteúdo!'); return; }
-            status.innerText = '⏳ Processando...';
+            const type = targetType.value;
+            const title = document.getElementById('ai-post-title').value;
+
+            if(!content) { alert('Erro: O conteúdo está vazio.'); return; }
+            if(type === 'post' && !title) { alert('Erro: Defina um título para o post.'); return; }
+
+            status.innerText = '⏳ Sincronizando com Huxley...';
+            status.style.color = '#72777c';
+            linkWrapper.style.display = 'none';
+
+            const endpoint = type === 'home' ? 'update-layout' : 'create-post';
+            
             try {
-                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/update-layout'); ?>', {
+                const response = await fetch('<?php echo get_rest_url(null, 'cm-global/v1/'); ?>' + endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: content })
+                    body: JSON.stringify({ 
+                        content: content,
+                        title: title
+                    })
                 });
+                
                 const result = await response.json();
-                status.innerText = '✅ ' + (result.message || 'Sucesso!');
+                
+                if(response.ok) {
+                    status.innerText = '✅ ' + result.message;
+                    status.style.color = '#46b450';
+                    if(result.url) {
+                        viewLink.href = result.url;
+                        linkWrapper.style.display = 'block';
+                    }
+                } else {
+                    status.innerText = '❌ Erro: ' + (result.message || 'Falha na publicação');
+                    status.style.color = '#dc3232';
+                }
             } catch (e) {
-                status.innerText = '❌ Erro na conexão.';
+                status.innerText = '❌ Erro de conexão com o servidor.';
+                status.style.color = '#dc3232';
             }
         });
         </script>
