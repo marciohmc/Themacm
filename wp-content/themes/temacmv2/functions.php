@@ -492,11 +492,26 @@ function cm_ai_publish_page() {
 
         targetSelect.addEventListener('change', handleTargetChange);
 
+        // Lógica de Visualização de Código Live
+        toggleLiveBtn.addEventListener('click', () => {
+            const isHidden = liveWrapper.style.display === 'none';
+            liveWrapper.style.display = isHidden ? 'block' : 'none';
+            toggleLiveBtn.innerText = isHidden ? 'Ocultar Código Produção' : 'Ver Código em Produção';
+        });
+
+        copyBtn.addEventListener('click', () => {
+            if(confirm('Isso substituirá o código no editor de rascunho. Continuar?')) {
+                input.value = currentLiveContent;
+                renderInFrame(preview, input.value);
+                // Dispara evento input para garantir sincronia se houver outros listeners
+                input.dispatchEvent(new Event('input'));
+            }
+        });
+
         // Lógica de Chat com Gemini
         document.getElementById('generate-ai-code-btn').addEventListener('click', async () => {
             const prompt = document.getElementById('ai-chat-prompt').value;
             const chatStatus = document.getElementById('ai-chat-status');
-            const editor = document.getElementById('ai-content-input');
             
             if(!prompt) return alert('Por favor, digite o que você deseja gerar.');
             
@@ -512,8 +527,11 @@ function cm_ai_publish_page() {
                 const data = await response.json();
                 
                 if(data.status === 'success') {
-                    editor.value = data.content;
-                    updateDraftPreview();
+                    // Atualiza o editor de código
+                    input.value = data.content;
+                    // Atualiza a mesa de projeto imediatamente
+                    renderInFrame(preview, data.content);
+                    
                     chatStatus.innerText = '✨ Código gerado e aplicado ao rascunho!';
                     document.getElementById('ai-chat-prompt').value = '';
                 } else {
