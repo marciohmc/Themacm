@@ -466,7 +466,7 @@ function cm_ai_publish_page() {
                     <button id="copy-to-draft" type="button" class="button" style="margin-top: 5px; width: 100%;">Copiar para o Editor de Rascunho ↑</button>
                 </div>
 
-                <textarea id="ai-content-input" style="width: 100%; height: 350px; font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #fafafa; border-radius: 4px;" placeholder="Cole aqui seu novo código..."></textarea>
+                <textarea id="ai-content-input" style="width: 100%; height: 350px; font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; color: #0f172a;" placeholder="Cole aqui seu novo código..."></textarea>
                 
                 <div style="margin-top: 20px; display: flex; align-items: center; gap: 15px;">
                     <button id="publish-ai-btn" class="button button-primary button-large" style="padding: 0 40px; height: 45px; font-weight: bold;">Publicar Live</button>
