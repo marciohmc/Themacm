@@ -783,6 +783,36 @@ function cm_ai_publish_page() {
     <?php
 }
 
+// --- HARDENING DE SEGURANÇA ---
+
+// 1. Desativar arquivos XML-RPC (comum para ataques de força bruta)
+add_filter('xmlrpc_enabled', '__return_false');
+
+// 2. Remover versão do WordPress do Header e RSS
+function cm_remove_version() {
+    return '';
+}
+add_filter('the_generator', 'cm_remove_version');
+
+// 3. Ocultar mensagens detalhadas de erro no login
+function cm_login_errors_message() {
+    return 'Erro: Credenciais inválidas. Por favor, tente novamente.';
+}
+add_filter('login_errors', 'cm_login_errors_message');
+
+// 4. Bloquear pingbacks e auto-discovery
+function cm_disable_self_ping( &$links ) {
+    foreach ( $links as $l => $link )
+        if ( 0 === strpos( $link, get_option( 'home' ) ) )
+            unset($links[$l]);
+}
+add_action( 'pre_ping', 'cm_disable_self_ping' );
+
+// 5. Remover links WLW Manifest e EditURI
+remove_action('wp_head', 'rsd_link');
+remove_action('wp_head', 'wlwmanifest_link');
+
+
 // Forçar Endpoint do WPGetAPI
 add_action('admin_init', function() {
     $opt = 'wpgetapi_endpoints';
