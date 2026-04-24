@@ -812,6 +812,110 @@ add_action( 'pre_ping', 'cm_disable_self_ping' );
 remove_action('wp_head', 'rsd_link');
 remove_action('wp_head', 'wlwmanifest_link');
 
+// 6. Remover estilos de emojis (comum para injetar scripts)
+remove_action('wp_head', 'print_emoji_detection_script', 7);
+remove_action('wp_print_styles', 'print_emoji_styles');
+
+// 7. Desativar link de REST API no header
+remove_action('wp_head', 'rest_output_link_wp_head', 10);
+remove_action('wp_head', 'wp_oembed_add_discovery_links', 10);
+
+
+// --- SEO E META TAGS ---
+
+function cm_seo_meta_tags() {
+    // Descrição Padrão
+    $description = get_bloginfo('description');
+    
+    // Se for página ou post singular, usa o resumo ou conteúdo
+    if ( is_singular() ) {
+        global $post;
+        if ( !empty($post->post_excerpt) ) {
+            $description = wp_strip_all_tags($post->post_excerpt);
+        } else {
+            $description = wp_trim_words(wp_strip_all_tags($post->post_content), 160);
+        }
+    }
+
+    // Título Principal
+    $title = wp_get_document_title();
+    $url = get_permalink();
+    if ( is_front_page() || is_home() ) {
+        $url = home_url();
+    }
+
+    // Meta Tags Básicas
+    echo "\n" . '<!-- CM Global SEO -->' . "\n";
+    echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+    echo '<meta name="robots" content="index, follow">' . "\n";
+    echo '<link rel="canonical" href="' . esc_url($url) . '">' . "\n";
+
+    // Open Graph
+    echo '<meta property="og:locale" content="pt_BR">' . "\n";
+    echo '<meta property="og:type" content="website">' . "\n";
+    echo '<meta property="og:title" content="' . esc_attr($title) . '">' . "\n";
+    echo '<meta property="og:description" content="' . esc_attr($description) . '">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url($url) . '">' . "\n";
+    echo '<meta property="og:site_name" content="' . get_bloginfo('name') . '">' . "\n";
+
+    // Imagem do Open Graph
+    if ( has_post_thumbnail() ) {
+        $img_url = get_the_post_thumbnail_url(get_the_ID(), 'full');
+        echo '<meta property="og:image" content="' . esc_url($img_url) . '">' . "\n";
+    }
+
+    // Twitter Cards
+    echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+    echo '<meta name="twitter:title" content="' . esc_attr($title) . '">' . "\n";
+    echo '<meta name="twitter:description" content="' . esc_attr($description) . '">' . "\n";
+    
+    echo '<!-- End CM Global SEO -->' . "\n";
+}
+add_action('wp_head', 'cm_seo_meta_tags', 2);
+
+// --- SCHEMA.ORG (JSON-LD) ---
+
+function cm_schema_org_data() {
+    $schema = array(
+        "@context" => "https://schema.org",
+        "@type" => "Organization",
+        "name" => get_bloginfo('name'),
+        "url" => home_url(),
+        "logo" => get_site_icon_url(),
+        "description" => get_bloginfo('description'),
+        "address" => array(
+            "@type" => "PostalAddress",
+            "addressLocality" => "Brasil"
+        ),
+        "contactPoint" => array(
+            "@type" => "ContactPoint",
+            "contactType" => "customer service",
+            "areaServed" => "BR",
+            "availableLanguage" => "Portuguese"
+        )
+    );
+
+    echo "\n" . '<script type="application/ld+json">' . "\n";
+    echo json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . "\n";
+    echo '</script>' . "\n";
+}
+add_action('wp_head', 'cm_schema_org_data');
+
+// --- OTIMIZAÇÃO DE IMAGENS ---
+
+// Se a imagem não tiver ALT, usa o título do post ou o nome do arquivo
+function cm_auto_image_alt_text($attributes, $attachment) {
+    if ( empty($attributes['alt']) ) {
+        $post_id = get_post_parent($attachment->ID);
+        if ($post_id) {
+            $attributes['alt'] = get_the_title($post_id);
+        } else {
+            $attributes['alt'] = $attachment->post_title;
+        }
+    }
+    return $attributes;
+}
+add_filter('wp_get_attachment_image_attributes', 'cm_auto_image_alt_text', 10, 2);
 
 // Forçar Endpoint do WPGetAPI
 add_action('admin_init', function() {
