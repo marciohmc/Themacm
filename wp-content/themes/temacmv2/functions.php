@@ -134,7 +134,7 @@ class CM_Walker_Nav_Menu extends Walker_Nav_Menu {
  */
 class CM_Mobile_Walker_Nav_Menu extends Walker_Nav_Menu {
     function start_lvl(&$output, $depth = 0, $args = null) {
-        $output .= '<ul class="mobile-sub-menu hidden flex-col gap-4 pl-4 mt-4 border-l border-white/10">';
+        $output .= '<ul class="mobile-sub-menu hidden flex-col gap-4 pl-4 mt-4 border-l-2 border-blue-500/20">';
     }
 
     function end_lvl(&$output, $depth = 0, $args = null) {
