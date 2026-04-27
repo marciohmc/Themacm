@@ -31,7 +31,7 @@
                 <?php endif; ?>
             </a>
 
-            <nav class="hidden md:flex items-center gap-10">
+            <nav class="hidden md:block">
                 <?php 
                 wp_nav_menu( array(
                     'theme_location' => 'primary',

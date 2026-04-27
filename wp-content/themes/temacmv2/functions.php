@@ -145,17 +145,17 @@ class CM_Mobile_Walker_Nav_Menu extends Walker_Nav_Menu {
         $classes = empty($item->classes) ? array() : (array) $item->classes;
         $has_children = in_array('menu-item-has-children', $classes);
         
-        $output .= '<li class="mobile-menu-item">';
+        $output .= '<li class="mobile-menu-item mb-2">';
         
         if ($has_children) {
             $output .= '<div class="flex items-center justify-between w-full">';
-            $output .= '<a href="' . $item->url . '" class="flex-grow">' . $item->title . '</a>';
-            $output .= '<button class="mobile-submenu-toggle p-2 text-blue-500">';
-            $output .= '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform transform"><path d="m6 9 6 6 6-6"/></svg>';
+            $output .= '<a href="' . $item->url . '" class="flex-grow text-slate-900 hover:text-blue-600 transition-colors">' . $item->title . '</a>';
+            $output .= '<button class="mobile-submenu-toggle p-2 text-blue-500 bg-slate-50 rounded-lg">';
+            $output .= '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300"><path d="m6 9 6 6 6-6"/></svg>';
             $output .= '</button>';
             $output .= '</div>';
         } else {
-            $output .= '<a href="' . $item->url . '" class="block">' . $item->title . '</a>';
+            $output .= '<a href="' . $item->url . '" class="block text-slate-900 hover:text-blue-600 transition-colors">' . $item->title . '</a>';
         }
     }
 

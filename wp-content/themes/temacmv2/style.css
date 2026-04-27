@@ -54,9 +54,17 @@ p, .text-text-secondary, li, span {
     max-height: 60px !important;
 }
 
-/* Links e textos com a classe de azul elétrico */
-a, .text-electric-blue {
-    color: #00a3ff !important;
+/* Ajustes para o menu mobile com fundo branco */
+#mobile-menu-drawer, #mobile-menu-drawer * {
+    color: #0f172a !important;
+}
+
+#mobile-menu-drawer a:hover {
+    color: #3b82f6 !important;
+}
+
+#mobile-menu-drawer .mobile-submenu-toggle {
+    background-color: #f1f5f9 !important;
 }
 
 /* Garante que o cabeçalho e rodapé herdem o fundo escuro */
