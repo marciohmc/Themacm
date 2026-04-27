@@ -55,7 +55,13 @@ p, .text-text-secondary, li, span {
 }
 
 /* Ajustes para o menu mobile com fundo branco */
-#mobile-menu-drawer, #mobile-menu-drawer * {
+#mobile-menu-drawer {
+    background-color: white !important;
+}
+
+#mobile-menu-drawer a, 
+#mobile-menu-drawer span, 
+#mobile-menu-drawer p {
     color: #0f172a !important;
 }
 
@@ -65,6 +71,11 @@ p, .text-text-secondary, li, span {
 
 #mobile-menu-drawer .mobile-submenu-toggle {
     background-color: #f1f5f9 !important;
+}
+
+#mobile-menu-drawer .mobile-sub-menu a {
+    color: #475569 !important;
+    font-size: 0.875rem;
 }
 
 /* Garante que o cabeçalho e rodapé herdem o fundo escuro */

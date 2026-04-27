@@ -80,28 +80,36 @@
             // Mobile Menu Logic
             let isMenuOpen = false;
 
-            mobileMenuToggle.addEventListener('click', () => {
-                isMenuOpen = !isMenuOpen;
-                
-                if (isMenuOpen) {
-                    mobileMenuDrawer.classList.remove('translate-x-full');
-                    menuIconOpen.classList.add('hidden');
-                    menuIconClose.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden'; // Lock scroll
-                } else {
-                    mobileMenuDrawer.classList.add('translate-x-full');
-                    menuIconOpen.classList.remove('hidden');
-                    menuIconClose.classList.add('hidden');
-                    document.body.style.overflow = ''; // Unlock scroll
-                }
-            });
+            if (mobileMenuToggle && mobileMenuDrawer) {
+                mobileMenuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    isMenuOpen = !isMenuOpen;
+                    console.log('Menu toggle clicked, isMenuOpen:', isMenuOpen);
+                    
+                    if (isMenuOpen) {
+                        mobileMenuDrawer.classList.remove('translate-x-full');
+                        menuIconOpen.classList.add('hidden');
+                        menuIconClose.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden'; 
+                    } else {
+                        mobileMenuDrawer.classList.add('translate-x-full');
+                        menuIconOpen.classList.remove('hidden');
+                        menuIconClose.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
 
             // Close menu on link click
-            const mobileLinks = mobileMenuDrawer.querySelectorAll('a');
+            const mobileLinks = mobileMenuDrawer ? mobileMenuDrawer.querySelectorAll('a') : [];
             mobileLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
-                    // Se for um link comum (não um toggle de submenu), fecha o menu
-                    if (!link.closest('.mobile-menu-item').querySelector('.mobile-submenu-toggle')) {
+                    const menuItem = link.closest('.mobile-menu-item');
+                    const hasSubmenu = menuItem && menuItem.querySelector('.mobile-sub-menu');
+                    
+                    // Se o link é uma âncora ou um link de página normal, fecha o menu
+                    // Exceto se for o link pai de um submenu (opcional, dependendo do UX desejado)
+                    if (!hasSubmenu || link.getAttribute('href') !== '#') {
                         isMenuOpen = false;
                         mobileMenuDrawer.classList.add('translate-x-full');
                         menuIconOpen.classList.remove('hidden');
@@ -116,7 +124,9 @@
             submenuToggles.forEach(toggle => {
                 toggle.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const subMenu = toggle.closest('.mobile-menu-item').querySelector('.mobile-sub-menu');
+                    e.stopPropagation();
+                    const menuItem = toggle.closest('.mobile-menu-item');
+                    const subMenu = menuItem.querySelector('.mobile-sub-menu');
                     const icon = toggle.querySelector('svg');
                     
                     if (subMenu.classList.contains('hidden')) {
