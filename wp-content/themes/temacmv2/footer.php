@@ -99,12 +99,35 @@
             // Close menu on link click
             const mobileLinks = mobileMenuDrawer.querySelectorAll('a');
             mobileLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    isMenuOpen = false;
-                    mobileMenuDrawer.classList.add('translate-x-full');
-                    menuIconOpen.classList.remove('hidden');
-                    menuIconClose.classList.add('hidden');
-                    document.body.style.overflow = '';
+                link.addEventListener('click', (e) => {
+                    // Se for um link comum (não um toggle de submenu), fecha o menu
+                    if (!link.closest('.mobile-menu-item').querySelector('.mobile-submenu-toggle')) {
+                        isMenuOpen = false;
+                        mobileMenuDrawer.classList.add('translate-x-full');
+                        menuIconOpen.classList.remove('hidden');
+                        menuIconClose.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+
+            // Mobile Submenu Accordion
+            const submenuToggles = document.querySelectorAll('.mobile-submenu-toggle');
+            submenuToggles.forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const subMenu = toggle.closest('.mobile-menu-item').querySelector('.mobile-sub-menu');
+                    const icon = toggle.querySelector('svg');
+                    
+                    if (subMenu.classList.contains('hidden')) {
+                        subMenu.classList.remove('hidden');
+                        subMenu.classList.add('flex');
+                        icon.classList.add('rotate-180');
+                    } else {
+                        subMenu.classList.add('hidden');
+                        subMenu.classList.remove('flex');
+                        icon.classList.remove('rotate-180');
+                    }
                 });
             });
         });

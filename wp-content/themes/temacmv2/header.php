@@ -38,7 +38,6 @@
                     'container'      => false,
                     'menu_class'     => 'flex items-center gap-10',
                     'fallback_cb'    => '__return_false',
-                    'items_wrap'     => '%3$s',
                     'walker'         => new CM_Walker_Nav_Menu()
                 ) );
                 ?>
@@ -53,15 +52,15 @@
         </div>
 
         <!-- MOBILE MENU DRAWER (HIDDEN BY DEFAULT) -->
-        <div id="mobile-menu-drawer" class="fixed inset-0 top-24 bg-[#0f172a]/95 backdrop-blur-xl z-40 transform translate-x-full transition-transform duration-500 ease-in-out md:hidden flex flex-col p-8 border-t border-white/5">
-            <nav class="flex flex-col gap-6">
+        <div id="mobile-menu-drawer" class="fixed inset-0 top-24 bg-[#0f172a]/95 backdrop-blur-xl z-40 transform translate-x-full transition-transform duration-500 ease-in-out md:hidden flex flex-col p-8 border-t border-white/5 overflow-y-auto">
+            <nav class="flex flex-col">
                 <?php 
                 wp_nav_menu( array(
                     'theme_location' => 'primary',
                     'container'      => false,
                     'menu_class'     => 'flex flex-col gap-6 text-xl font-display font-bold text-white',
                     'fallback_cb'    => '__return_false',
-                    'items_wrap'     => '%3$s'
+                    'walker'         => new CM_Mobile_Walker_Nav_Menu()
                 ) );
                 ?>
             </nav>

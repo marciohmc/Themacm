@@ -84,19 +84,83 @@ add_action( 'wp_enqueue_scripts', 'cm_global_v2_enqueue_scripts' );
  * Walker Custom para o Menu Tailwind
  */
 class CM_Walker_Nav_Menu extends Walker_Nav_Menu {
+    function start_lvl(&$output, $depth = 0, $args = null) {
+        $classes = array('sub-menu', 'absolute', 'top-full', 'left-0', 'mt-2', 'min-w-[200px]', 'bg-[#1e293b]', 'border', 'border-white/10', 'rounded-lg', 'shadow-2xl', 'opacity-0', 'invisible', 'group-hover:opacity-100', 'group-hover:visible', 'transition-all', 'duration-300', 'z-50', 'py-2');
+        $output .= '<ul class="' . implode(' ', $classes) . '">';
+    }
+
+    function end_lvl(&$output, $depth = 0, $args = null) {
+        $output .= '</ul>';
+    }
+
     function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
         $classes = empty($item->classes) ? array() : (array) $item->classes;
+        $has_children = in_array('menu-item-has-children', $classes);
         $active_class = in_array('current-menu-item', $classes) ? 'text-[#3b82f6]' : 'text-slate-400 hover:text-white';
         
         $url = $item->url;
-        // Se for um link de âncora (ex: #contato), garante que funcione em outras páginas voltando para a Home
         if (strpos($url, '#') === 0) {
             $url = home_url('/') . $url;
         }
 
-        $output .= '<a href="' . $url . '" class="' . $active_class . ' font-display font-medium text-sm tracking-wide transition-colors">';
-        $output .= $item->title;
-        $output .= '</a>';
+        $li_classes = array_merge($classes, array('relative', 'group'));
+        if ($depth > 0) {
+            $li_classes[] = 'block';
+        }
+
+        $output .= '<li class="' . implode(' ', $li_classes) . '">';
+        
+        if ($depth === 0) {
+            $output .= '<a href="' . $url . '" class="' . $active_class . ' font-display font-medium text-sm tracking-wide transition-colors flex items-center gap-1 py-4">';
+            $output .= $item->title;
+            if ($has_children) {
+                $output .= '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 opacity-50 group-hover:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>';
+            }
+            $output .= '</a>';
+        } else {
+            $output .= '<a href="' . $url . '" class="block px-6 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">';
+            $output .= $item->title;
+            $output .= '</a>';
+        }
+    }
+
+    function end_el(&$output, $item, $depth = 0, $args = null) {
+        $output .= '</li>';
+    }
+}
+
+/**
+ * Walker Custom para o Menu Mobile (Accordion Style)
+ */
+class CM_Mobile_Walker_Nav_Menu extends Walker_Nav_Menu {
+    function start_lvl(&$output, $depth = 0, $args = null) {
+        $output .= '<ul class="mobile-sub-menu hidden flex-col gap-4 pl-4 mt-4 border-l border-white/10">';
+    }
+
+    function end_lvl(&$output, $depth = 0, $args = null) {
+        $output .= '</ul>';
+    }
+
+    function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
+        $classes = empty($item->classes) ? array() : (array) $item->classes;
+        $has_children = in_array('menu-item-has-children', $classes);
+        
+        $output .= '<li class="mobile-menu-item">';
+        
+        if ($has_children) {
+            $output .= '<div class="flex items-center justify-between w-full">';
+            $output .= '<a href="' . $item->url . '" class="flex-grow">' . $item->title . '</a>';
+            $output .= '<button class="mobile-submenu-toggle p-2 text-blue-500">';
+            $output .= '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform transform"><path d="m6 9 6 6 6-6"/></svg>';
+            $output .= '</button>';
+            $output .= '</div>';
+        } else {
+            $output .= '<a href="' . $item->url . '" class="block">' . $item->title . '</a>';
+        }
+    }
+
+    function end_el(&$output, $item, $depth = 0, $args = null) {
+        $output .= '</li>';
     }
 }
 
